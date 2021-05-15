@@ -17,8 +17,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "M2libc/bootstrappable.h"
 
 /* Define all of the constants */
 // CONSTANT FALSE 0
@@ -31,14 +33,6 @@
 #define MAX_ARRAY 256
 
 /* Prototypes for external funcs */
-int match(char* a, char* b);
-void file_print(char* s, FILE* f);
-char* copy_string(char* target, char* source);
-char* prepend_string(char* add, char* base);
-void require(int bool, char* error);
-char* postpend_char(char* s, char a);
-int string_length(char* a);
-void require(int bool, char* error);
 
 /* Globals */
 int verbose;
@@ -48,7 +42,7 @@ int verbose;
 /* Function to find a character's position in a string (last match) */
 int find_last_char_pos(char* string, char a)
 {
-	int i = string_length(string) - 1;
+	int i = strlen(string) - 1;
 	if(i < 0) return i;
 	while(i >= 0)
 	{
@@ -88,7 +82,7 @@ char* directory_dest(char* dest, char* source, int require_directory)
 	 *   works.
 	 */
 	int isdirectory = FALSE;
-	if(dest[string_length(dest) - 1] == '/')
+	if(dest[strlen(dest) - 1] == '/')
 	{
 		isdirectory = TRUE;
 	}
@@ -112,11 +106,13 @@ char* directory_dest(char* dest, char* source, int require_directory)
 		require(chdir_dest != NULL, "Memory initialization of chdir_dest in directory_dest failed\n");
 		if(dest[0] != '/')
 		{ /* The path is relative, append current_path */
-			copy_string(chdir_dest, prepend_string(prepend_string(current_path, "/"), dest));
+			strcat(chdir_dest, current_path);
+			strcat(chdir_dest, "/");
+			strcat(chdir_dest, dest);
 		}
 		else
 		{ /* The path is absolute */
-			copy_string(chdir_dest, dest);
+			strcpy(chdir_dest, dest);
 		}
 		if(0 <= chdir(chdir_dest))
 		{ /* chdir returned successfully */
@@ -151,11 +147,10 @@ char* directory_dest(char* dest, char* source, int require_directory)
 	int last_slash_pos = find_last_char_pos(source, '/');
 	if(last_slash_pos >= 0)
 	{ /* Yes, there is a slash in it, copy over everything after that pos */
-		int spos; /* source pos */
-		int bpos = 0; /* basename pos */
-		int source_length = string_length(source);
+		unsigned spos; /* source pos */
+		unsigned bpos = 0; /* basename pos */
 		/* Do the actual copy */
-		for(spos = last_slash_pos + 1; spos < string_length(source); spos = spos + 1)
+		for(spos = last_slash_pos + 1; spos < strlen(source); spos = spos + 1)
 		{
 			basename[bpos] = source[spos];
 			bpos = bpos + 1;
@@ -163,46 +158,56 @@ char* directory_dest(char* dest, char* source, int require_directory)
 	}
 	else
 	{ /* No, there is no slash in it, hence the basename is just the source */
-		copy_string(basename, source);
+		strcpy(basename, source);
 	}
 	/* 2. Ensure our dest (which is a directory) has a trailing slash */
-	if(dest[string_length(dest) - 1] != '/')
+	if(dest[strlen(dest) - 1] != '/')
 	{
-		dest = postpend_char(dest, '/');
+		strcat(dest, "/");
 	}
 	/* 3. Add the basename to the end of the directory */
-	dest = prepend_string(dest, basename);
+	strcat(dest, basename);
 	free(basename);
 
 	/* Now we have a returnable path! */
 	return dest;
 }
 
-int copy_file(char* source, char* dest)
+void copy_file(char* source, char* dest)
 {
 	if(verbose)
 	{ /* Output message */
 		/* Of the form 'source' -> 'dest' */
-		file_print("'", stdout);
-		file_print(source, stdout);
-		file_print("' -> '", stdout);
-		file_print(dest, stdout);
-		file_print("'\n", stdout);
+		fputs("'", stdout);
+		fputs(source, stdout);
+		fputs("' -> '", stdout);
+		fputs(dest, stdout);
+		fputs("'\n", stdout);
 	}
 
 	/* Open source and dest as FILE*s */
 	FILE* fsource = fopen(source, "r");
-	require(fsource != NULL, prepend_string(
-			prepend_string("Error opening source file ", source), "\n"));
+	if(fsource == NULL)
+	{
+		fputs("Error opening source file ", stderr);
+		fputs(source, stderr);
+		fputc('\n', stderr);
+		exit(EXIT_FAILURE);
+	}
 	FILE* fdest = fopen(dest, "w");
-	require(fdest >= 0, prepend_string(
-			prepend_string("Error opening destination file", dest), "\n"));
+	if(fdest < 0)
+	{
+		fputs("Error opening destination file", stderr);
+		fputs(dest, stderr);
+		fputc('\n', stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	/*
 	 * The following loop reads a character from the source and writes it to the
 	 * dest file. This is all M2-Planet supports.
 	 */
-	char c = fgetc(fsource);
+	int c = fgetc(fsource);
 	while(c != EOF)
 	{
 		fputc(c, fdest);
@@ -237,14 +242,14 @@ int main(int argc, char** argv)
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
-			file_print("Usage: ", stdout);
-			file_print(argv[0], stdout);
-			file_print(" [-h | --help] [-V | --version] [-v | --verbose] source1 source2 sourcen destination\n", stdout);
+			fputs("Usage: ", stdout);
+			fputs(argv[0], stdout);
+			fputs(" [-h | --help] [-V | --version] [-v | --verbose] source1 source2 sourcen destination\n", stdout);
 			exit(EXIT_SUCCESS);
 		}
 		else if(match(argv[i], "-V") || match(argv[i], "--version"))
 		{ /* Output version */
-			file_print("cp version 1.1.0\n", stdout);
+			fputs("cp version 1.1.0\n", stdout);
 			exit(EXIT_SUCCESS);
 		}
 		else if(match(argv[i], "-v") || match(argv[i], "--verbose"))
@@ -273,21 +278,21 @@ int main(int argc, char** argv)
 			{ /* We are setting the destination (there are no more left after this) */
 				dest = calloc(MAX_STRING, sizeof(char));
 				require(dest != NULL, "Memory initialization of dest failed\n");
-				copy_string(dest, argv[i]);
+				strcpy(dest, argv[i]);
 			}
 			else
 			{ /* We are setting a source */
 				require(sources_index < MAX_ARRAY, "Too many files\n");
 				sources[sources_index] = calloc(MAX_STRING, sizeof(char));
 				require(sources[sources_index] != NULL, "Memory initialization of sources[source_index] failed\n");
-				copy_string(sources[sources_index], argv[i]);
+				strcpy(sources[sources_index], argv[i]);
 				sources_index = sources_index + 1;
 			}
 			i = i + 1;
 		}
 		else
 		{ /* Unknown argument */
-			file_print("UNKNOWN_ARGUMENT\n", stderr);
+			fputs("UNKNOWN_ARGUMENT\n", stderr);
 			exit(EXIT_FAILURE);
 		}
 	}

@@ -17,9 +17,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include "M2libc/bootstrappable.h"
 
 /* Define all of the constants */
 // CONSTANT FALSE 0
@@ -31,38 +33,23 @@
 // CONSTANT MAX_ARRAY 256
 #define MAX_ARRAY 256
 
-/* Prototypes for external funcs */
-void file_print(char* s, FILE* f);
-char* prepend_char(char a, char* s);
-int numerate_string(char *a);
-void require(int bool, char* error);
-char* copy_string(char* target, char* source);
-int match(char* a, char* b);
+struct files
+{
+	char* name;
+	struct files* next;
+};
+
 /* Globals */
 int verbose;
 
-/* UTILITY FUNCTIONS */
-
-/* Function to find the length of a char**; an array of strings */
-int array_length(char** array)
-{
-	int length = 0;
-	while(array[length] != NULL)
-	{
-		length = length + 1;
-	}
-	return length;
-}
-
 /* PROCESSING FUNCTIONS */
-
 int main(int argc, char** argv)
 {
 	/* Initialize variables */
-	char** files = calloc(MAX_ARRAY, sizeof(char*));
-	require(files != NULL, "Memory initialization of files failed\n");
-	int files_index = 0;
 	char* mode = NULL;
+	struct files* f = NULL;
+	struct files* n;
+	int ok;
 
 	/* Set defaults */
 	verbose = FALSE;
@@ -77,14 +64,14 @@ int main(int argc, char** argv)
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
-			file_print("Usage: ", stdout);
-			file_print(argv[0], stdout);
-			file_print(" [-h | --help] [-V | --version] [-v | --verbose]\n", stdout);
+			fputs("Usage: ", stdout);
+			fputs(argv[0], stdout);
+			fputs(" [-h | --help] [-V | --version] [-v | --verbose]\n", stdout);
 			exit(EXIT_SUCCESS);
 		}
 		else if(match(argv[i], "-V") || match(argv[i], "--version"))
 		{ /* Output version */
-			file_print("chmod version 1.1.0\n", stdout);
+			fputs("chmod version 1.1.0\n", stdout);
 			exit(EXIT_SUCCESS);
 		}
 		else if(match(argv[i], "-v") || match(argv[i], "--verbose"))
@@ -92,66 +79,60 @@ int main(int argc, char** argv)
 			verbose = TRUE;
 			i = i + 1;
 		}
-		else if(argv[i][0] != '-')
+		else
 		{ /* It must be the file or the mode */
 			if(mode == NULL)
 			{ /* Mode always comes first */
 				mode = calloc(MAX_STRING, sizeof(char));
 				require(mode != NULL, "Memory initialization of mode failed\n");
-				copy_string(mode, argv[i]);
+				/* We need to indicate it is octal */
+				strcat(mode, "0");
+				strcat(mode, argv[i]);
 			}
 			else
 			{ /* It's a file, as the mode is already done */
-				files[files_index] = calloc(MAX_STRING, sizeof(char));
-				require(files[files_index] != NULL, "Memory initialization of files[files_index] failed\n");
-				copy_string(files[files_index], argv[i]);
-				files_index = files_index + 1;
+				n = calloc(1, sizeof(struct files));
+				require(n != NULL, "Memory initialization of files failed\n");
+				n->next = f;
+				f = n;
+				f->name = argv[i];
 			}
 			i = i + 1;
-		}
-		else
-		{ /* Unknown argument */
-			file_print("UNKNOWN_ARGUMENT\n", stderr);
-			exit(EXIT_FAILURE);
 		}
 	}
 
 	/* Ensure the two values have values */
 	require(mode != NULL, "Provide a mode\n");
-	require(files[0] != NULL, "Provide a file\n");
+	require(f != NULL, "Provide a file\n");
 
 	/* Convert the mode str into octal */
-	if(mode[0] != '0')
-	{ /* We need to indicate it is octal */
-		mode = prepend_char('0', mode);
-	}
-	int omode = numerate_string(mode);
+	int omode = strtoint(mode);
 
 	/* Loop over files to be operated on */
-	FILE* test;
-	for(i = 0; i < array_length(files); i = i + 1)
+	while(NULL != f)
 	{
 		/* Make sure the file can be opened */
-		test = fopen(files[i], "r");
-		require(test != NULL, "A file cannot be read\n");
-		fclose(test);
+		ok = access(f->name, 0);
+		if(ok != 0)
+		{
+			fputs("The file: ", stderr);
+			fputs(f->name, stderr);
+			fputs(" does not exist\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		/* Verbose message */
 		if(verbose)
 		{
-			file_print("mode of '", stdout);
-			file_print(files[i], stdout);
-			file_print("' changed to ", stdout);
-			file_print(mode, stdout);
-			file_print("\n", stdout);
+			fputs("mode of '", stdout);
+			fputs(f->name, stdout);
+			fputs("' changed to ", stdout);
+			fputs(mode, stdout);
+			fputs("\n", stdout);
 		}
 
 		/* Perform the chmod */
-		chmod(files[i], omode);
-
-		free(files[i]);
+		chmod(f->name, omode);
+		f = f->next;
 	}
-
-	free(mode);
-	free(files);
 }
