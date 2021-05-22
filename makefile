@@ -41,7 +41,10 @@ chmod: chmod.c | bin
 	$(CC) $(CFLAGS) chmod.c M2libc/bootstrappable.c -o bin/chmod
 
 ungz: ungz.c | bin
-	$(CC) $(CFLAGS) chmod.c M2libc/bootstrappable.c -o bin/ungz
+	$(CC) $(CFLAGS) ungz.c M2libc/bootstrappable.c -o bin/ungz
+
+untar: untar.c | bin
+	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o bin/untar
 
 # Clean up after ourselves
 .PHONY: clean
