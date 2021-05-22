@@ -40,6 +40,9 @@ cp: cp.c | bin
 chmod: chmod.c | bin
 	$(CC) $(CFLAGS) chmod.c M2libc/bootstrappable.c -o bin/chmod
 
+ungz: ungz.c | bin
+	$(CC) $(CFLAGS) chmod.c M2libc/bootstrappable.c -o bin/ungz
+
 # Clean up after ourselves
 .PHONY: clean
 clean:
