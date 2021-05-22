@@ -1,5 +1,19 @@
-/*
- * This file is in the public domain.  Use it as you see fit.
+/* Copyright (C) 2009 Tim Kientzle
+ * Copyright (C) 2021 Jeremiah Orians
+ * This file is part of mescc-tools-extra
+ *
+ * mescc-tools-extra is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * mescc-tools-extra is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with mescc-tools-extra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -115,7 +129,7 @@ void create_dir(char *pathname, int mode)
 }
 
 /* Create a file, including parent directory as necessary. */
-FILE* create_file(char *pathname, int mode)
+FILE* create_file(char *pathname)
 {
 	FILE* f;
 	f = fopen(pathname, "w");
@@ -241,7 +255,7 @@ void untar(FILE *a, char const* path)
 		{
 			fputs(" Extracting file ", stdout);
 			puts(buff);
-			f = create_file(buff, parseoct(buff + 100, 8));
+			f = create_file(buff);
 		}
 
 		while(filesize > 0)

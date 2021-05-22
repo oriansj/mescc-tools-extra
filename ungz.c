@@ -1,5 +1,22 @@
-/*
- * puff.c
+/* Copyright (C) 2002-2013 Mark Adler, all rights reserved
+ * Copyright (C) 2021 Jeremiah Orians
+ * This file is part of mescc-tools-extra
+ *
+ * mescc-tools-extra is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * mescc-tools-extra is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with mescc-tools-extra.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* puff.c
  * Copyright (C) 2002-2013 Mark Adler, all rights reserved
  * version 2.3, 21 Jan 2013
  * This software is provided 'as-is', without any express or implied
@@ -16,6 +33,12 @@
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  * Mark Adler    madler@alumni.caltech.edu
+ */
+
+/* ungz.c is a gz file decompression utility that leverages puff.c to provide
+ * the deflate algorithm with multiple modifications to enable being built by
+ * M2-Planet with M2libc.
+ *
  *
  * puff.c is a simple inflate written to be an unambiguous way to specify the
  * deflate format.  It is not written for speed but rather simplicity.  As a
@@ -90,6 +113,7 @@
  *                      - Allow incomplete code only if single code length is 1
  *                      - Add full code coverage test to Makefile
  * 2.3  21 Jan 2013     - Check for invalid code length codes in dynamic blocks
+ * ??   22 May 2021     - Convert to M2-Planet C subset for bootstrapping purposes.
  */
 
 #include <stdio.h>
