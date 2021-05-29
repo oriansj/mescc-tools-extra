@@ -18,15 +18,14 @@
 VPATH = bin:test/results
 PACKAGE = mescc-tools
 
-all: get_machine kaem catm cp chmod
+all: get_machine kaem catm cp chmod ungz untar sha256sum
 .NOTPARALLEL:
 CC=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -std=c99 -ggdb -fno-common
 
+# Building with GCC
 get_machine: get_machine.c M2libc/bootstrappable.c | bin
-	$(CC) $(CFLAGS) get_machine.c \
-	M2libc/bootstrappable.c \
-	-o bin/get_machine
+	$(CC) $(CFLAGS) get_machine.c M2libc/bootstrappable.c -o bin/get_machine
 
 kaem: Kaem/kaem.c Kaem/variable.c Kaem/kaem_globals.c M2libc/bootstrappable.c | bin
 	cd Kaem && make kaem
@@ -45,6 +44,9 @@ ungz: ungz.c | bin
 
 untar: untar.c | bin
 	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o bin/untar
+
+sha256sum: sha256sum.c | bin
+	$(CC) $(CFLAGS) sha256sum.c M2libc/bootstrappable.c -o bin/sha256sum
 
 # Clean up after ourselves
 .PHONY: clean
