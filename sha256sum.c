@@ -437,7 +437,7 @@ go_again:
 			fputs(name, stdout);
 			fputs(": FAILED\nWanted:   ", stdout);
 			fputs(hash_to_string(hash2), stdout);
-			fputs("\nRecieved: ", stdout);
+			fputs("\nReceived: ", stdout);
 			puts(hash_to_string(hash));
 			r = FALSE;
 		}
@@ -454,6 +454,8 @@ int main(int argc, char **argv)
 	size_t read;
 	int check = FALSE;
 	int r = TRUE;
+	char* output_file = "";
+	FILE* output = stdout;
 
 	int i = 1;
 	while(i <= argc)
@@ -466,6 +468,16 @@ int main(int argc, char **argv)
 		{
 			check = TRUE;
 			i = i + 1;
+		}
+		else if (match(argv[i], "-o") || match(argv[i], "--output"))
+		{
+			output_file = argv[i + 1];
+			i = i + 2;
+			if (output != stdout) {
+				fclose(output);
+			}
+			output = fopen(output_file, "w");
+			require(output != NULL, "Output file cannot be opened!\n");
 		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
@@ -497,7 +509,15 @@ int main(int argc, char **argv)
 	{
 		while(NULL != l)
 		{
-			if(!check_file(l->buffer, l->name)) r = FALSE;
+			if(l->found)
+			{
+				if(!check_file(l->buffer, l->name)) r = FALSE;
+			}
+			else
+			{
+				fputs(l->name, stdout);
+				puts(": No such file or directory");
+			}
 			l = l->next;
 		}
 	}
@@ -508,17 +528,21 @@ int main(int argc, char **argv)
 			if(l->found)
 			{
 				calc_sha_256(l->hash, l->buffer, l->size);
-				fputs(hash_to_string(l->hash), stdout);
-				fputs("  ", stdout);
-				puts(l->name);
+				fputs(hash_to_string(l->hash), output);
+				fputs("  ", output);
+				fputs(l->name, output);
+				fputc('\n', output);
 			}
 			else
 			{
-				fputs(l->name, stdout);
-				puts(": No such file or directory\n");
+				fputs(l->name, output);
+				fputs(": No such file or directory\n", output);
 			}
 			l = l->next;
 		}
+	}
+	if (output != stdout) {
+		fclose(output);
 	}
 
 	if(r) return 0;
