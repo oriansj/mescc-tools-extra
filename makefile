@@ -18,7 +18,7 @@
 VPATH = bin:test/results
 PACKAGE = mescc-tools
 
-all: get_machine kaem catm cp chmod ungz untar sha256sum
+all: get_machine kaem catm cp chmod ungz untar sha256sum sha3sum
 .NOTPARALLEL:
 CC=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -std=c99 -ggdb -fno-common
@@ -47,6 +47,9 @@ untar: untar.c | bin
 
 sha256sum: sha256sum.c | bin
 	$(CC) $(CFLAGS) sha256sum.c M2libc/bootstrappable.c -o bin/sha256sum
+
+sha3sum: sha3sum.c | bin
+	$(CC) $(CFLAGS) sha3sum.c M2libc/bootstrappable.c -o bin/sha3sum
 
 # Clean up after ourselves
 .PHONY: clean
