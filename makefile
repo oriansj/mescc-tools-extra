@@ -68,7 +68,7 @@ bin:
 	mkdir -p bin
 
 # tests
-test:
+test: sha256sum sha3sum kaem | bin
 	./test.sh
 
 

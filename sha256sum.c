@@ -26,6 +26,8 @@
 #define CHUNK_SIZE 64
 #define TOTAL_LEN_LEN 8
 
+int mask;
+
 /*
  * Initialize array of round constants:
  * (first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311):
@@ -129,7 +131,12 @@ unsigned right_rot(unsigned value, unsigned count)
 	 * Defined behaviour in standard C for all count where 0 < count < 32,
 	 * which is what we need here.
 	 */
-	return value >> count | value << (32 - count);
+
+	value = value & mask;
+	int hold1 = (value >> count) & mask;
+	int hold2 = (value << (32 - count)) & mask;
+	int hold = (hold1 | hold2) & mask;
+	return hold;
 }
 
 void init_buf_state(struct buffer_state * state, char* input, size_t len)
@@ -233,6 +240,8 @@ void calc_sha_256(char* hash, char* input, size_t len)
 	unsigned* h = init_h();
 	unsigned i;
 	unsigned j;
+	unsigned hold1;
+	unsigned hold2;
 	/* 512-bit chunks is what we will operate on. */
 	char* chunk = calloc(65, sizeof(char));
 	struct buffer_state* state = calloc(1, sizeof(struct buffer_state));
@@ -285,8 +294,14 @@ void calc_sha_256(char* hash, char* input, size_t len)
 				else
 				{
 					/* Extend the first 16 words into the remaining 48 words w[16..63] of the message schedule array: */
-					s0 = right_rot(w[(j + 1) & 0xf], 7) ^ right_rot(w[(j + 1) & 0xf], 18) ^ (w[(j + 1) & 0xf] >> 3);
-					s1 = right_rot(w[(j + 14) & 0xf], 17) ^ right_rot(w[(j + 14) & 0xf], 19) ^ (w[(j + 14) & 0xf] >> 10);
+					hold1 = (j + 1) & 0xf;
+					hold2 = w[hold1];
+					s0 = right_rot(hold2, 7) ^ right_rot(hold2, 18) ^ ((hold2 & mask) >> 3);
+
+					hold1 = (j + 14) & 0xf;
+					hold2 = w[hold1];
+					s1 = right_rot(hold2, 17) ^ right_rot(hold2, 19) ^ ((hold2 & mask) >> 10);
+
 					w[j] = w[j] + s0 + w[(j + 9) & 0xf] + s1;
 				}
 
@@ -456,6 +471,7 @@ int main(int argc, char **argv)
 	int r = TRUE;
 	char* output_file = "";
 	FILE* output = stdout;
+	mask = (0x7FFFFFFF << 1) | 0x1;
 
 	int i = 1;
 	while(i <= argc)
