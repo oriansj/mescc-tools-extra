@@ -336,4 +336,6 @@ int main(int argc, char** argv)
 
 	free(sources);
 	free(dest);
+
+	return EXIT_SUCCESS;
 }
