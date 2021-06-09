@@ -17,10 +17,6 @@
 
 set -ex
 . ./sha256.sh
-echo "Beginning mescc-tools-tests"
-cd Kaem && make test && cd ..
-echo "mescc-tools-tests done"
-
 echo "Beginning sha256sum tests"
 mkdir -p bin/tests
 env printf "abc" >bin/tests/abc

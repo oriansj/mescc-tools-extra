@@ -123,3 +123,96 @@ ${TOOLS}/hex2 \
 	--base-address ${BASE_ADDRESS} \
 	-o ${BINDIR}/ungz
 
+# Build catm
+${TOOLS}/M2-Planet --architecture ${ARCH} \
+	-f ${M2LIBC}/sys/types.h \
+	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
+	-f ${M2LIBC}/stdlib.c \
+	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdio.c \
+	-f catm.c --debug -o catm.M1
+
+${TOOLS}/blood-elf -f catm.M1 --entry _start -o catm-footer.M1 ${BLOOD_FLAG}
+
+${TOOLS}/M1 \
+	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
+	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
+	-f catm.M1 \
+	-f catm-footer.M1 \
+	--little-endian \
+	--architecture ${ARCH} \
+	-o catm.hex2
+
+${TOOLS}/hex2 \
+	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f catm.hex2 \
+	--little-endian \
+	--architecture ${ARCH} \
+	--base-address ${BASE_ADDRESS} \
+	-o ${BINDIR}/catm
+
+# build cp
+${TOOLS}/M2-Planet --architecture ${ARCH} \
+	-f ${M2LIBC}/sys/types.h \
+	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
+	-f ${M2LIBC}/stdlib.c \
+	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdio.c \
+	-f ${M2LIBC}/string.c \
+	-f ${M2LIBC}/bootstrappable.c \
+	-f cp.c --debug -o cp.M1
+
+${TOOLS}/blood-elf -f cp.M1 --entry _start -o cp-footer.M1 ${BLOOD_FLAG}
+
+${TOOLS}/M1 \
+	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
+	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
+	-f cp.M1 \
+	-f cp-footer.M1 \
+	--little-endian \
+	--architecture ${ARCH} \
+	-o cp.hex2
+
+${TOOLS}/hex2 \
+	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f cp.hex2 \
+	--little-endian \
+	--architecture ${ARCH} \
+	--base-address ${BASE_ADDRESS} \
+	-o ${BINDIR}/cp
+
+# build chmod
+${TOOLS}/M2-Planet --architecture ${ARCH} \
+	-f ${M2LIBC}/sys/types.h \
+	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
+	-f ${M2LIBC}/stdlib.c \
+	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdio.c \
+	-f ${M2LIBC}/string.c \
+	-f ${M2LIBC}/bootstrappable.c \
+	-f chmod.c --debug -o chmod.M1
+
+${TOOLS}/blood-elf -f chmod.M1 --entry _start -o chmod-footer.M1 ${BLOOD_FLAG}
+
+${TOOLS}/M1 \
+	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
+	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
+	-f chmod.M1 \
+	-f chmod-footer.M1 \
+	--little-endian \
+	--architecture ${ARCH} \
+	-o chmod.hex2
+
+${TOOLS}/hex2 \
+	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f chmod.hex2 \
+	--little-endian \
+	--architecture ${ARCH} \
+	--base-address ${BASE_ADDRESS} \
+	-o ${BINDIR}/chmod
