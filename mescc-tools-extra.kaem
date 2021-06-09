@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+## Copyright (C) 2017 Jeremiah Orians
+## This file is part of mescc-tools.
+##
+## mescc-tools is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## mescc-tools is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with mescc-tools.  If not, see <http://www.gnu.org/licenses/>.
+
+## You need to set the following environmental variables to build the programs:
+## ARCH="${ARCH:-x86}"
+## M2LIBC="${M2libc:-./M2libc}"
+## TOOLS="${TOOLS:-../bin}"
+## BLOOD_FLAG="${BLOOD_FLAG:-}"
+## BASE_ADDRESS="${BASE_ADDRESS:-0x08048000}"
+## BINDIR="${BINDIR:-../bin}"
+
+set -ex
+
+## Build sha256sum
+${TOOLS}/M2-Planet --architecture ${ARCH} \
+	-f ${M2LIBC}/sys/types.h \
+	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
+	-f ${M2LIBC}/stdlib.c \
+	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdio.c \
+	-f ${M2LIBC}/string.c \
+	-f ${M2LIBC}/bootstrappable.c \
+	-f sha256sum.c --debug -o sha256sum.M1
+
+${TOOLS}/blood-elf -f sha256sum.M1 --entry _start -o sha256sum-footer.M1 ${BLOOD_FLAG}
+
+${TOOLS}/M1 \
+	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
+	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
+	-f sha256sum.M1 \
+	-f sha256sum-footer.M1 \
+	--little-endian \
+	--architecture ${ARCH} \
+	-o sha256sum.hex2
+
+${TOOLS}/hex2 \
+	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f sha256sum.hex2 \
+	--little-endian \
+	--architecture ${ARCH} \
+	--base-address ${BASE_ADDRESS} \
+	-o ${BINDIR}/sha256sum
+
+
+## Build untar
+${TOOLS}/M2-Planet --architecture ${ARCH} \
+	-f ${M2LIBC}/sys/types.h \
+	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
+	-f ${M2LIBC}/stdlib.c \
+	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdio.c \
+	-f ${M2LIBC}/string.c \
+	-f ${M2LIBC}/bootstrappable.c \
+	-f untar.c --debug -o untar.M1
+
+${TOOLS}/blood-elf -f untar.M1 --entry _start -o untar-footer.M1 ${BLOOD_FLAG}
+
+${TOOLS}/M1 \
+	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
+	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
+	-f untar.M1 \
+	-f untar-footer.M1 \
+	--little-endian \
+	--architecture ${ARCH} \
+	-o untar.hex2
+
+${TOOLS}/hex2 \
+	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f untar.hex2 \
+	--little-endian \
+	--architecture ${ARCH} \
+	--base-address ${BASE_ADDRESS} \
+	-o ${BINDIR}/untar
+
+
+## Build ungz
+${TOOLS}/M2-Planet --architecture ${ARCH} \
+	-f ${M2LIBC}/sys/types.h \
+	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
+	-f ${M2LIBC}/stdlib.c \
+	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdio.c \
+	-f ${M2LIBC}/string.c \
+	-f ${M2LIBC}/bootstrappable.c \
+	-f ungz.c --debug -o ungz.M1
+
+${TOOLS}/blood-elf -f ungz.M1 --entry _start -o ungz-footer.M1 ${BLOOD_FLAG}
+
+${TOOLS}/M1 \
+	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
+	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
+	-f ungz.M1 \
+	-f ungz-footer.M1 \
+	--little-endian \
+	--architecture ${ARCH} \
+	-o ungz.hex2
+
+${TOOLS}/hex2 \
+	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
+	-f ungz.hex2 \
+	--little-endian \
+	--architecture ${ARCH} \
+	--base-address ${BASE_ADDRESS} \
+	-o ${BINDIR}/ungz
+
