@@ -451,9 +451,9 @@ go_again:
 		{
 			fputs(name, stdout);
 			fputs(": FAILED\nWanted:   ", stdout);
-			fputs(hash_to_string(hash2), stdout);
+			fputs(hash_to_string(hash), stdout);
 			fputs("\nReceived: ", stdout);
-			puts(hash_to_string(hash));
+			puts(hash_to_string(hash2));
 			r = FALSE;
 		}
 	}
