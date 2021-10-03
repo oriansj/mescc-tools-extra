@@ -22,6 +22,7 @@
 ## BLOOD_FLAG="${BLOOD_FLAG:-}"
 ## BASE_ADDRESS="${BASE_ADDRESS:-0x08048000}"
 ## BINDIR="${BINDIR:-../bin}"
+## BUILDDIR="${BUILDDIR:-}"
 
 set -ex
 
@@ -36,26 +37,28 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
-	-f sha256sum.c --debug -o sha256sum.M1
+	-f sha256sum.c \
+	--debug \
+	-o ${BUILDDIR}/sha256sum.M1
 
 ${TOOLS}/blood-elf \
-	-f sha256sum.M1 \
+	-f ${BUILDDIR}/sha256sum.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o sha256sum-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/sha256sum-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f sha256sum.M1 \
-	-f sha256sum-footer.M1 \
+	-f ${BUILDDIR}/sha256sum.M1 \
+	-f ${BUILDDIR}/sha256sum-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o sha256sum.hex2
+	-o ${BUILDDIR}/sha256sum.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f sha256sum.hex2 \
+	-f ${BUILDDIR}/sha256sum.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
@@ -72,26 +75,28 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
-	-f mkdir.c --debug -o mkdir.M1
+	-f mkdir.c \
+	--debug \
+	-o ${BUILDDIR}/mkdir.M1
 
 ${TOOLS}/blood-elf \
-	-f mkdir.M1 \
+	-f ${BUILDDIR}/mkdir.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o mkdir-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/mkdir-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f mkdir.M1 \
-	-f mkdir-footer.M1 \
+	-f ${BUILDDIR}/mkdir.M1 \
+	-f ${BUILDDIR}/mkdir-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o mkdir.hex2
+	-o ${BUILDDIR}/mkdir.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f mkdir.hex2 \
+	-f ${BUILDDIR}/mkdir.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
@@ -109,26 +114,28 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
-	-f untar.c --debug -o untar.M1
+	-f untar.c \
+	--debug \
+	-o ${BUILDDIR}/untar.M1
 
 ${TOOLS}/blood-elf \
-	-f untar.M1 \
+	-f ${BUILDDIR}/untar.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o untar-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/untar-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f untar.M1 \
-	-f untar-footer.M1 \
+	-f ${BUILDDIR}/untar.M1 \
+	-f ${BUILDDIR}/untar-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o untar.hex2
+	-o ${BUILDDIR}/untar.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f untar.hex2 \
+	-f ${BUILDDIR}/untar.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
@@ -146,26 +153,28 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
-	-f ungz.c --debug -o ungz.M1
+	-f ungz.c \
+	--debug \
+	-o ${BUILDDIR}/ungz.M1
 
 ${TOOLS}/blood-elf \
-	-f ungz.M1 \
+	-f ${BUILDDIR}/ungz.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o ungz-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/ungz-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f ungz.M1 \
-	-f ungz-footer.M1 \
+	-f ${BUILDDIR}/ungz.M1 \
+	-f ${BUILDDIR}/ungz-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o ungz.hex2
+	-o ${BUILDDIR}/ungz.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f ungz.hex2 \
+	-f ${BUILDDIR}/ungz.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
@@ -180,26 +189,28 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdio.c \
-	-f catm.c --debug -o catm.M1
+	-f catm.c \
+	--debug \
+	-o ${BUILDDIR}/catm.M1
 
 ${TOOLS}/blood-elf \
-	-f catm.M1 \
+	-f ${BUILDDIR}/catm.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o catm-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/catm-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f catm.M1 \
-	-f catm-footer.M1 \
+	-f ${BUILDDIR}/catm.M1 \
+	-f ${BUILDDIR}/catm-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o catm.hex2
+	-o ${BUILDDIR}/catm.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f catm.hex2 \
+	-f ${BUILDDIR}/catm.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
@@ -216,26 +227,28 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
-	-f cp.c --debug -o cp.M1
+	-f cp.c \
+	--debug \
+	-o ${BUILDDIR}/cp.M1
 
 ${TOOLS}/blood-elf \
-	-f cp.M1 \
+	-f ${BUILDDIR}/cp.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o cp-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/cp-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f cp.M1 \
-	-f cp-footer.M1 \
+	-f ${BUILDDIR}/cp.M1 \
+	-f ${BUILDDIR}/cp-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o cp.hex2
+	-o ${BUILDDIR}/cp.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f cp.hex2 \
+	-f ${BUILDDIR}/cp.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
@@ -252,26 +265,28 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
-	-f chmod.c --debug -o chmod.M1
+	-f chmod.c \
+	--debug \
+	-o ${BUILDDIR}/chmod.M1
 
 ${TOOLS}/blood-elf \
-	-f chmod.M1 \
+	-f ${BUILDDIR}/chmod.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o chmod-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/chmod-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f chmod.M1 \
-	-f chmod-footer.M1 \
+	-f ${BUILDDIR}/chmod.M1 \
+	-f ${BUILDDIR}/chmod-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o chmod.hex2
+	-o ${BUILDDIR}/chmod.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f chmod.hex2 \
+	-f ${BUILDDIR}/chmod.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
