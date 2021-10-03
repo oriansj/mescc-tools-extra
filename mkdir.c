@@ -22,8 +22,8 @@
  * required parent directories.
  *
  * Usage: mkdir <dir1>/<dir2> <dir3>
-
-/* These are all highly standard and portable headers. */
+ *
+ * These are all highly standard and portable headers. */
 #include <stdio.h>
 #include <string.h>
 
