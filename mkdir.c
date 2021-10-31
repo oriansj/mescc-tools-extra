@@ -70,10 +70,15 @@ void create_dir(char *pathname, int mode)
 
 int main(int argc, char **argv)
 {
-	int i;
-	for(i = 1; argc > i; i = i + 1)
+	int i = 1;
+	/* The first argument is skiped if it's "-p".  This adds some quasi-
+	compatibility with GNU coreutils' mkdir.  `mkdir -p foo` is used
+	in several kaem scripts. */
+	if(argc > 1 && match(argv[1], "-p") == TRUE)
+		i = 2;
+	for(i; argc > i; i = i + 1)
 	{
-	  create_dir(argv[i], 0755);
+		create_dir(argv[i], 0755);
 	}
 
 	return 0;
