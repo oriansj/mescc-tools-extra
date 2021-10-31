@@ -110,6 +110,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
+	-f ${M2LIBC}/bootstrappable.c \
 	-f mkdir.c \
 	--debug \
 	-o ${BUILDDIR}/mkdir.M1
