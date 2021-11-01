@@ -74,26 +74,26 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/bootstrappable.c \
-	-f match.c --debug -o match.M1
+	-f match.c --debug -o ${BUILDDIR}/match.M1
 
 ${TOOLS}/blood-elf \
-	-f match.M1 \
+	-f ${BUILDDIR}/match.M1 \
 	${ENDIAN_FLAG} \
 	--entry _start \
-	-o match-footer.M1 ${BLOOD_FLAG}
+	-o ${BUILDDIR}/match-footer.M1 ${BLOOD_FLAG}
 
 ${TOOLS}/M1 \
 	-f ${M2LIBC}/${ARCH}/${ARCH}_defs.M1 \
 	-f ${M2LIBC}/${ARCH}/libc-full.M1 \
-	-f match.M1 \
-	-f match-footer.M1 \
+	-f ${BUILDDIR}/match.M1 \
+	-f ${BUILDDIR}/match-footer.M1 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
-	-o match.hex2
+	-o ${BUILDDIR}/match.hex2
 
 ${TOOLS}/hex2 \
 	-f ${M2LIBC}/${ARCH}/ELF-${ARCH}-debug.hex2 \
-	-f match.hex2 \
+	-f ${BUILDDIR}/match.hex2 \
 	${ENDIAN_FLAG} \
 	--architecture ${ARCH} \
 	--base-address ${BASE_ADDRESS} \
