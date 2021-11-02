@@ -29,7 +29,10 @@
 
 /* This is for mkdir(); this may need to be changed for some platforms. */
 #include <sys/stat.h>  /* For mkdir() */
+#include <stdlib.h>
 #include "M2libc/bootstrappable.h"
+
+int parents;
 
 /* Create a directory, including parent directories as necessary. */
 void create_dir(char *pathname, int mode)
@@ -46,7 +49,7 @@ void create_dir(char *pathname, int mode)
 	/* Try creating the directory. */
 	r = mkdir(pathname, mode);
 
-	if(r != 0)
+	if((r != 0) && parents)
 	{
 		/* On failure, try creating parent directory. */
 		p = strrchr(pathname, '/');
@@ -60,25 +63,24 @@ void create_dir(char *pathname, int mode)
 		}
 	}
 
-	if(r != 0)
+	if((r != 0) && !parents)
 	{
 		fputs("Could not create directory ", stderr);
 		fputs(pathname, stderr);
 		fputc('\n', stderr);
+		exit(EXIT_FAILURE);
 	}
 }
 
 int main(int argc, char **argv)
 {
-	int i = 1;
-	/* The first argument is skiped if it's "-p".  This adds some quasi-
-	compatibility with GNU coreutils' mkdir.  `mkdir -p foo` is used
-	in several kaem scripts. */
-	if(argc > 1 && match(argv[1], "-p") == TRUE)
-		i = 2;
-	for(i; argc > i; i = i + 1)
+	/* This adds some quasi-compatibility with GNU coreutils' mkdir. */
+	parents = FALSE;
+	int i;
+	for(i = 1; argc > i; i = i + 1)
 	{
-		create_dir(argv[i], 0755);
+		if(match(argv[i], "-p")) parents = TRUE;
+		else create_dir(argv[i], 0755);
 	}
 
 	return 0;

@@ -17,6 +17,9 @@
 # Ignore build directory
 bin/
 
+#Ignore test directory
+test/
+
 # Ignore temp files
 *.hex2
 *.M1
