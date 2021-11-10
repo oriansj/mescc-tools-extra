@@ -462,6 +462,22 @@ go_again:
 	goto go_again;
 }
 
+/* reverse the linked list */
+void reverse(struct list** head)
+{
+	struct list* prev = NULL;
+	struct list* current = *head;
+	struct list* next = NULL;
+	while (current != NULL)
+	{
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+	*head = prev;
+}
+
 int main(int argc, char **argv)
 {
 	struct list* l = NULL;
@@ -520,6 +536,7 @@ int main(int argc, char **argv)
 			i = i + 1;
 		}
 	}
+	reverse(&l);
 
 	if(check)
 	{
