@@ -185,7 +185,7 @@ int calc_chunk(char* chunk, struct buffer_state * state)
 	 * Now:
 	 * - either there is enough space left for the total length, and we can conclude,
 	 * - or there is too little space left, and we have to pad the rest of this chunk with zeroes.
-	 * In the latter case, we will conclude at the next invokation of this function.
+	 * In the latter case, we will conclude at the next invocation of this function.
 	 */
 	if(space_in_chunk >= TOTAL_LEN_LEN)
 	{
