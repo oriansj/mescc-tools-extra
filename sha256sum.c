@@ -132,7 +132,7 @@ unsigned right_rot(unsigned value, unsigned count)
 	 * which is what we need here.
 	 */
 
-	value = value & mask;
+	value &= mask;
 	int hold1 = (value >> count) & mask;
 	int hold2 = (value << (32 - count)) & mask;
 	int hold = (hold1 | hold2) & mask;
@@ -161,23 +161,23 @@ int calc_chunk(char* chunk, struct buffer_state * state)
 	if(state->len >= CHUNK_SIZE)
 	{
 		memcpy(chunk, state->p, CHUNK_SIZE);
-		state->p = state->p + CHUNK_SIZE;
-		state->len = state->len - CHUNK_SIZE;
+		state->p += CHUNK_SIZE;
+		state->len -= CHUNK_SIZE;
 		return 1;
 	}
 
 	memcpy(chunk, state->p, state->len);
-	chunk = chunk + state->len;
+	chunk += state->len;
 	space_in_chunk = CHUNK_SIZE - state->len;
-	state->p = state->p + state->len;
+	state->p += state->len;
 	state->len = 0;
 
 	/* If we are here, space_in_chunk is one at minimum. */
 	if(!state->single_one_delivered)
 	{
 		chunk[0] = 0x80;
-		chunk = chunk + 1;
-		space_in_chunk = space_in_chunk - 1;
+		chunk += 1;
+		space_in_chunk -= 1;
 		state->single_one_delivered = 1;
 	}
 
@@ -193,15 +193,15 @@ int calc_chunk(char* chunk, struct buffer_state * state)
 		size_t len = state->total_len;
 		int i;
 		memset(chunk, 0x00, left);
-		chunk = chunk + left;
+		chunk += left;
 		/* Storing of len * 8 as a big endian 64-bit without overflow. */
 		chunk[7] = (len << 3);
-		len = (len >> 5);
+		len >>= 5;
 
-		for(i = 6; i >= 0; i = i - 1)
+		for(i = 6; i >= 0; i -= 1)
 		{
 			chunk[i] = len;
-			len = (len >> 8);
+			len >>= 8;
 		}
 
 		state->total_len_delivered = 1;
@@ -261,13 +261,13 @@ void calc_sha_256(char* hash, char* input, size_t len)
 		p = chunk;
 
 		/* Initialize working variables to current hash value: */
-		for(i = 0; i < 8; i = i + 1)
+		for(i = 0; i < 8; i += 1)
 		{
 			ah[i] = h[i];
 		}
 
 		/* Compression function main loop: */
-		for(i = 0; i < 4; i = i + 1)
+		for(i = 0; i < 4; i += 1)
 		{
 			/*
 			 * The w-array is really w[64], but since we only need
@@ -284,12 +284,12 @@ void calc_sha_256(char* hash, char* input, size_t len)
 			 * copy chunk into first 16 words w[0..15] of the message schedule array
 			 */
 
-			for(j = 0; j < 16; j = j + 1)
+			for(j = 0; j < 16; j += 1)
 			{
 				if(i == 0)
 				{
 					w[j] = ((p[0] & 0xFF) << 24) | ((p[1] & 0xFF) << 16) | ((p[2] & 0xFF) << 8) | (p[3] & 0xFF);
-					p = p + 4;
+					p += 4;
 				}
 				else
 				{
@@ -302,7 +302,7 @@ void calc_sha_256(char* hash, char* input, size_t len)
 					hold2 = w[hold1];
 					s1 = right_rot(hold2, 17) ^ right_rot(hold2, 19) ^ ((hold2 & mask) >> 10);
 
-					w[j] = w[j] + s0 + w[(j + 9) & 0xf] + s1;
+					w[j] += s0 + w[(j + 9) & 0xf] + s1;
 				}
 
 				s1 = right_rot(ah[4], 6) ^ right_rot(ah[4], 11) ^ right_rot(ah[4], 25);
@@ -323,24 +323,24 @@ void calc_sha_256(char* hash, char* input, size_t len)
 		}
 
 		/* Add the compressed chunk to the current hash value: */
-		for(i = 0; i < 8; i = i + 1)
+		for(i = 0; i < 8; i +=  1)
 		{
-			h[i] = h[i] + ah[i];
+			h[i] += ah[i];
 		}
 	}
 
 	/* Produce the final hash value (big-endian): */
 	i = 0;
-	for(j = 0; i < 8; i = i + 1)
+	for(j = 0; i < 8; i += 1)
 	{
 		hash[j] = ((h[i] >> 24) & 0xFF);
-		j = j + 1;
+		j += 1;
 		hash[j] = ((h[i] >> 16) & 0xFF);
-		j = j + 1;
+		j += 1;
 		hash[j] = ((h[i] >> 8) & 0xFF);
-		j = j + 1;
+		j += 1;
 		hash[j] = (h[i] & 0xFF);
-		j = j + 1;
+		j += 1;
 	}
 }
 
@@ -377,13 +377,13 @@ char* hash_to_string(char* a)
 	int i;
 	int j = 0;
 	int c;
-	for(i=0; i < 32; i = i + 1)
+	for(i = 0; i < 32; i += 1)
 	{
 		c = a[i] & 0xFF;
 		r[j] = table[(c >> 4)];
-		j = j + 1;
+		j += 1;
 		r[j] = table[(c & 0xF)];
-		j = j + 1;
+		j += 1;
 	}
 	return r;
 }
@@ -401,12 +401,12 @@ int check_file(char* b, char* filename)
 	size_t size;
 	char* buffer;
 go_again:
-	for(i = 0; i < 32; i = i + 1)
+	for(i = 0; i < 32; i += 1)
 	{
 		hold1 = hex2int(b[0], filename);
 		hold2 = hex2int(b[1], filename);
 		hash[i] = (hold1 << 4) + hold2;
-		b = b + 2;
+		b += 2;
 	}
 
 	if((' ' != b[0]) || (' ' != b[1]))
@@ -415,17 +415,17 @@ go_again:
 		exit(EXIT_FAILURE);
 	}
 
-	b = b + 2;
-	for(i=0; i < 4096; i = i + 1)
+	b += 2;
+	for(i = 0; i < 4096; i += 1)
 	{
 		if('\n' == b[0])
 		{
 			name[i] = 0;
-			b = b + 1;
+			b += 1;
 			break;
 		}
 		name[i] = b[0];
-		b = b + 1;
+		b += 1;
 	}
 
 	f = fopen(name, "r");
@@ -494,17 +494,17 @@ int main(int argc, char **argv)
 	{
 		if(NULL == argv[i])
 		{
-			i = i + 1;
+			i += 1;
 		}
 		else if(match(argv[i], "-c") || match(argv[i], "--check"))
 		{
 			check = TRUE;
-			i = i + 1;
+			i += 1;
 		}
 		else if (match(argv[i], "-o") || match(argv[i], "--output"))
 		{
 			output_file = argv[i + 1];
-			i = i + 2;
+			i += 2;
 			if (output != stdout) {
 				fclose(output);
 			}
@@ -533,7 +533,7 @@ int main(int argc, char **argv)
 			}
 			t->next = l;
 			l = t;
-			i = i + 1;
+			i += 1;
 		}
 	}
 	reverse(&l);
