@@ -32,8 +32,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
@@ -70,8 +70,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/bootstrappable.c \
 	-f match.c --debug -o ${BUILDDIR}/match.M1
@@ -106,8 +106,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
@@ -145,8 +145,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
@@ -184,8 +184,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
@@ -222,8 +222,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f catm.c \
 	--debug \
@@ -258,8 +258,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
@@ -296,8 +296,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
 	-f ${M2LIBC}/bootstrappable.c \
