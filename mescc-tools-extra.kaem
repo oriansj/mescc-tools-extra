@@ -31,6 +31,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
@@ -69,6 +70,7 @@ ${TOOLS}/hex2 \
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
@@ -105,6 +107,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
@@ -144,6 +147,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
@@ -183,6 +187,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
@@ -221,6 +226,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
@@ -257,6 +263,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
@@ -295,6 +302,7 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
 	-f ${M2LIBC}/stddef.h \
+	-f ${M2LIBC}/signal.h \
 	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
 	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
 	-f ${M2LIBC}/stdlib.c \
