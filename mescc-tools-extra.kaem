@@ -29,11 +29,11 @@ set -ex
 ## Build sha256sum
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
-	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/${ARCH}/linux/sys/stat.c \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
@@ -71,8 +71,8 @@ ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/bootstrappable.c \
@@ -105,11 +105,11 @@ ${TOOLS}/hex2 \
 ## Build mkdir
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
-	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/${ARCH}/linux/sys/stat.c \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
@@ -145,11 +145,11 @@ ${TOOLS}/hex2 \
 ## Build untar
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
-	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/${ARCH}/linux/sys/stat.c \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
@@ -185,11 +185,11 @@ ${TOOLS}/hex2 \
 ## Build ungz
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
-	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/${ARCH}/linux/sys/stat.c \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
@@ -224,11 +224,11 @@ ${TOOLS}/hex2 \
 # Build catm
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
-	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/${ARCH}/linux/sys/stat.c \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f catm.c \
@@ -261,11 +261,11 @@ ${TOOLS}/hex2 \
 # build cp
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
-	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/${ARCH}/linux/sys/stat.c \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
@@ -300,11 +300,11 @@ ${TOOLS}/hex2 \
 # build chmod
 ${TOOLS}/M2-Planet --architecture ${ARCH} \
 	-f ${M2LIBC}/sys/types.h \
-	-f ${M2LIBC}/${ARCH}/Linux/sys/stat.h \
+	-f ${M2LIBC}/${ARCH}/linux/sys/stat.c \
 	-f ${M2LIBC}/stddef.h \
 	-f ${M2LIBC}/signal.h \
-	-f ${M2LIBC}/${ARCH}/Linux/unistd.h \
-	-f ${M2LIBC}/${ARCH}/Linux/fcntl.h \
+	-f ${M2LIBC}/${ARCH}/linux/unistd.c \
+	-f ${M2LIBC}/${ARCH}/linux/fcntl.c \
 	-f ${M2LIBC}/stdlib.c \
 	-f ${M2LIBC}/stdio.c \
 	-f ${M2LIBC}/string.c \
