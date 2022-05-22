@@ -1266,57 +1266,109 @@ int main(int argc, char **argv)
 {
 	struct puffer* ret;
 	char* name;
+	char* buffer;
 	char *dest;
 	struct gz* in;
 	FILE* out;
+	int FUZZING = FALSE;
 
 	/* process arguments */
 	int i = 1;
 	while (i < argc)
 	{
-		name = argv[i];
-		in = load(name);
-
-		if (in == NULL)
+		if(NULL == argv[i])
 		{
-			fputs("memory allocation failure\nDidn't read file\n", stderr);
-			exit(1);
+			i = i + 1;
 		}
-
-		ret = puff(0, 0, in->block, in->ISIZE);
-
-		fputs(name, stderr);
-		fputs(" => ", stderr);
-		fputs(in->FLG_FNAME, stderr);
-
-		if (0 != ret->error)
+		else if(match(argv[i], "-f") || match(argv[i], "--file"))
 		{
-			fputs("puff() failed with return code ", stderr);
-			fputs(int2str(ret->error, 10, TRUE), stderr);
-			fputc('\n', stderr);
-			exit(3);
+			name = argv[i+1];
+			require(NULL != name, "the --file option requires a filename to be given\n");
+			i = i + 2;
+		}
+		else if(match(argv[i], "-o") || match(argv[i], "--output"))
+		{
+			dest = argv[i+1];
+			require(NULL != dest, "the --output option requires a filename to be given\n");
+			i = i + 2;
+		}
+		else if(match(argv[i], "--chaos") || match(argv[i], "--fuzz-mode") || match(argv[i], "--fuzzing"))
+		{
+			FUZZING = TRUE;
+			fputs("fuzz-mode enabled, preparing for chaos\n", stderr);
+			i = i + 1;
+		}
+		else if(match(argv[i], "-h") || match(argv[i], "--help"))
+		{
+			fputs("Usage: ", stderr);
+			fputs(argv[0], stderr);
+			fputs(" --file $input.gz", stderr);
+			fputs(" [--output $output] (or it'll use the internal filename)\n", stderr);
+			fputs("--help to get this message\n", stderr);
+			fputs("--fuzz-mode if you wish to fuzz this application safely\n", stderr);
+			exit(EXIT_SUCCESS);
 		}
 		else
 		{
-			fputs(": succeeded uncompressing ", stderr);
-			fputs(int2str(ret->destlen, 10, FALSE), stderr);
-			fputs(" bytes\n", stderr);
+			fputs("Unknown option:", stderr);
+			fputs(argv[i], stderr);
+			fputs("\nAborting to avoid problems\n", stderr);
+			exit(EXIT_FAILURE);
 		}
-
-		dest = malloc(ret->destlen);
-		if (dest == NULL)
-		{
-			fputs("memory allocation failure\n", stderr);
-			return 4;
-		}
-
-		ret = puff(dest, ret->destlen, in->block, in->ISIZE);
-
-		out = fopen(in->FLG_FNAME, "w");
-		fwrite(dest, 1, ret->destlen, out);
-		free(dest);
-		i = i + 1;
 	}
+
+	in = load(name);
+
+	if (in == NULL)
+	{
+		fputs("memory allocation failure\nDidn't read file\n", stderr);
+		exit(1);
+	}
+
+	ret = puff(0, 0, in->block, in->ISIZE);
+
+	if(NULL == dest)
+	{
+		dest = in->FLG_FNAME;
+	}
+
+	fputs(name, stderr);
+	fputs(" => ", stderr);
+	fputs(dest, stderr);
+
+	if (0 != ret->error)
+	{
+		fputs("puff() failed with return code ", stderr);
+		fputs(int2str(ret->error, 10, TRUE), stderr);
+		fputc('\n', stderr);
+		exit(3);
+	}
+	else
+	{
+		fputs(": succeeded uncompressing ", stderr);
+		fputs(int2str(ret->destlen, 10, FALSE), stderr);
+		fputs(" bytes\n", stderr);
+	}
+
+	buffer = malloc(ret->destlen);
+	if (buffer == NULL)
+	{
+		fputs("memory allocation failure\n", stderr);
+		return 4;
+	}
+
+	ret = puff(buffer, ret->destlen, in->block, in->ISIZE);
+
+	if(!FUZZING)
+	{
+		out = fopen(dest, "w");
+		fwrite(buffer, 1, ret->destlen, out);
+	}
+	else
+	{
+		fputs("skipped write to file due to --fuzz-mode flag\n", stderr);
+	}
+	free(buffer);
 
 	/* clean up */
 	return 0;
