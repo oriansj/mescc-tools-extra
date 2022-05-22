@@ -52,6 +52,7 @@
 #include "M2libc/bootstrappable.h"
 
 int FUZZING;
+int VERBOSE;
 int STRICT;
 
 /* Parse an octal number, ignoring leading and trailing nonsense. */
@@ -193,8 +194,11 @@ int untar(FILE *a, char const* path)
 	size_t bytes_written;
 	int filesize;
 	int op;
-	fputs("Extracting from ", stdout);
-	puts(path);
+	if(VERBOSE)
+	{
+		fputs("Extracting from ", stdout);
+		puts(path);
+	}
 
 	while(TRUE)
 	{
@@ -213,8 +217,11 @@ int untar(FILE *a, char const* path)
 
 		if(is_end_of_archive(buff))
 		{
-			fputs("End of ", stdout);
-			puts(path);
+			if(VERBOSE)
+			{
+				fputs("End of ", stdout);
+				puts(path);
+			}
 			return TRUE;
 		}
 
@@ -286,8 +293,11 @@ int untar(FILE *a, char const* path)
 		}
 		else
 		{
-			fputs(" Extracting file ", stdout);
-			puts(buff);
+			if(VERBOSE)
+			{
+				fputs(" Extracting file ", stdout);
+				puts(buff);
+			}
 			f = create_file(buff);
 		}
 
@@ -381,6 +391,12 @@ int main(int argc, char **argv)
 			fputs("fuzz-mode enabled, preparing for chaos\n", stderr);
 			i = i + 1;
 		}
+		else if(match(argv[i], "-v") || match(argv[i], "--verbose"))
+		{
+			VERBOSE = TRUE;
+			i = i + 1;
+		}
+
 		else if(match(argv[i], "--non-strict") || match(argv[i], "--bad-decisions-mode") || match(argv[i], "--drunk-mode"))
 		{
 			STRICT = FALSE;
@@ -391,7 +407,8 @@ int main(int argc, char **argv)
 		{
 			fputs("Usage: ", stderr);
 			fputs(argv[0], stderr);
-			fputs(" --file $input.gz", stderr);
+			fputs(" --file $input.gz\n", stderr);
+			fputs("--verbose to print list of extracted files\n", stderr);
 			fputs("--help to get this message\n", stderr);
 			fputs("--fuzz-mode if you wish to fuzz this application safely\n", stderr);
 			fputs("--non-strict if you wish to just ignore files not existing\n", stderr);
