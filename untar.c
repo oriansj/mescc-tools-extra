@@ -51,6 +51,9 @@
 #include <sys/stat.h>  /* For mkdir() */
 #include "M2libc/bootstrappable.h"
 
+int FUZZING;
+int STRICT;
+
 /* Parse an octal number, ignoring leading and trailing nonsense. */
 int parseoct(char const* p, size_t n)
 {
@@ -104,33 +107,37 @@ void create_dir(char *pathname, int mode)
 	}
 
 	/* Try creating the directory. */
-	r = mkdir(pathname, mode);
-
-	if(r != 0)
+	if(!FUZZING)
 	{
-		/* On failure, try creating parent directory. */
-		p = strrchr(pathname, '/');
+		r = mkdir(pathname, mode);
 
-		if(p != NULL)
+		if(r != 0)
 		{
-			p[0] = '\0';
-			create_dir(pathname, 0755);
-			p[0] = '/';
-			r = mkdir(pathname, mode);
-		}
-	}
+			/* On failure, try creating parent directory. */
+			p = strrchr(pathname, '/');
 
-	if(r != 0)
-	{
-		fputs("Could not create directory ", stderr);
-		fputs(pathname, stderr);
-		fputc('\n', stderr);
+			if(p != NULL)
+			{
+				p[0] = '\0';
+				create_dir(pathname, 0755);
+				p[0] = '/';
+				r = mkdir(pathname, mode);
+			}
+		}
+
+		if(r != 0)
+		{
+			fputs("Could not create directory ", stderr);
+			fputs(pathname, stderr);
+			fputc('\n', stderr);
+		}
 	}
 }
 
 /* Create a file, including parent directory as necessary. */
 FILE* create_file(char *pathname)
 {
+	if(FUZZING) return NULL;
 	FILE* f;
 	f = fopen(pathname, "w");
 
@@ -178,11 +185,12 @@ int verify_checksum(char const* p)
 }
 
 /* Extract a tar archive. */
-void untar(FILE *a, char const* path)
+int untar(FILE *a, char const* path)
 {
 	char* buff = calloc(514, sizeof(char));
 	FILE* f = NULL;
 	size_t bytes_read;
+	size_t bytes_written;
 	int filesize;
 	int op;
 	fputs("Extracting from ", stdout);
@@ -200,20 +208,20 @@ void untar(FILE *a, char const* path)
 			fputs(": expected 512, got ", stderr);
 			fputs(int2str(bytes_read, 10, TRUE), stderr);
 			fputc('\n', stderr);
-			return;
+			return FALSE;
 		}
 
 		if(is_end_of_archive(buff))
 		{
 			fputs("End of ", stdout);
 			puts(path);
-			return;
+			return TRUE;
 		}
 
 		if(!verify_checksum(buff))
 		{
 			fputs("Checksum failure\n", stderr);
-			return;
+			return FALSE;
 		}
 
 		filesize = parseoct(buff + 124, 12);
@@ -221,21 +229,41 @@ void untar(FILE *a, char const* path)
 		op = buff[156];
 		if('1' == op)
 		{
+			if(STRICT)
+			{
+				fputs("unable to create hardlinks\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			fputs(" Ignoring hardlink ", stdout);
 			puts(buff);
 		}
 		else if('2' == op)
 		{
+			if(STRICT)
+			{
+				fputs("unable to create symlinks\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			fputs(" Ignoring symlink ", stdout);
 			puts(buff);
 		}
 		else if('3' == op)
 		{
+			if(STRICT)
+			{
+				fputs("unable to create character devices\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			fputs(" Ignoring character device ", stdout);
 			puts(buff);
 		}
 		else if('4' == op)
 		{
+			if(STRICT)
+			{
+				fputs("unable to create block devices\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			fputs(" Ignoring block device ", stdout);
 			puts(buff);
 		}
@@ -248,6 +276,11 @@ void untar(FILE *a, char const* path)
 		}
 		else if('6' == op)
 		{
+			if(STRICT)
+			{
+				fputs("unable to create FIFO\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			fputs(" Ignoring FIFO ", stdout);
 			puts(buff);
 		}
@@ -268,7 +301,7 @@ void untar(FILE *a, char const* path)
 				fputs(path, stderr);
 				fputs(": Expected 512, got ", stderr);
 				puts(int2str(bytes_read, 10, TRUE));
-				return;
+				return FALSE;
 			}
 
 			if(filesize < 512)
@@ -278,12 +311,15 @@ void untar(FILE *a, char const* path)
 
 			if(f != NULL)
 			{
-				op = fwrite(buff, 1, bytes_read, f);
-				if(op != bytes_read)
+				if(!FUZZING)
 				{
-					fputs("Failed write\n", stderr);
-					fclose(f);
-					f = NULL;
+					bytes_written = fwrite(buff, 1, bytes_read, f);
+					if(bytes_written != bytes_read)
+					{
+						fputs("Failed write\n", stderr);
+						fclose(f);
+						f = NULL;
+					}
 				}
 			}
 
@@ -296,27 +332,90 @@ void untar(FILE *a, char const* path)
 			f = NULL;
 		}
 	}
+	return TRUE;
 }
+
+struct files_queue
+{
+	char* name;
+	FILE* f;
+	struct files_queue* next;
+};
 
 int main(int argc, char **argv)
 {
-	FILE *a;
-	int i;
-	for(i = 1; argc > i; i = i + 1)
-	{
-		a = fopen(argv[i], "r");
+	struct files_queue* list = NULL;
+	struct files_queue* a;
+	STRICT = TRUE;
+	FUZZING = FALSE;
+	int r;
 
-		if(a == NULL)
+	int i = 1;
+	while (i < argc)
+	{
+		if(NULL == argv[i])
 		{
-			fputs("Unable to open ", stderr);
-			fputs(argv[i], stderr);
-			fputc('\n', stderr);
+			i = i + 1;
+		}
+		else if(match(argv[i], "-f") || match(argv[i], "--file"))
+		{
+			a = calloc(1, sizeof(struct files_queue));
+			require(NULL != a, "failed to allocate enough memory to even get the file name\n");
+			a->next = list;
+			a->name = argv[i+1];
+			require(NULL != a->name, "the --file option requires a filename to be given\n");
+			a->f = fopen(a->name, "r");
+			if(a->f == NULL)
+			{
+				fputs("Unable to open ", stderr);
+				fputs(a->name, stderr);
+				fputc('\n', stderr);
+				if(STRICT) exit(EXIT_FAILURE);
+			}
+			list = a;
+			i = i + 2;
+		}
+		else if(match(argv[i], "--chaos") || match(argv[i], "--fuzz-mode") || match(argv[i], "--fuzzing"))
+		{
+			FUZZING = TRUE;
+			fputs("fuzz-mode enabled, preparing for chaos\n", stderr);
+			i = i + 1;
+		}
+		else if(match(argv[i], "--non-strict") || match(argv[i], "--bad-decisions-mode") || match(argv[i], "--drunk-mode"))
+		{
+			STRICT = FALSE;
+			fputs("non-strict mode enabled, preparing for chaos\n", stderr);
+			i = i + 1;
+		}
+		else if(match(argv[i], "-h") || match(argv[i], "--help"))
+		{
+			fputs("Usage: ", stderr);
+			fputs(argv[0], stderr);
+			fputs(" --file $input.gz", stderr);
+			fputs("--help to get this message\n", stderr);
+			fputs("--fuzz-mode if you wish to fuzz this application safely\n", stderr);
+			fputs("--non-strict if you wish to just ignore files not existing\n", stderr);
+			exit(EXIT_SUCCESS);
 		}
 		else
 		{
-			untar(a, argv[i]);
-			fclose(a);
+			fputs("Unknown option:", stderr);
+			fputs(argv[i], stderr);
+			fputs("\nAborting to avoid problems\n", stderr);
+			exit(EXIT_FAILURE);
 		}
+	}
+
+	/* Process the queue one file at a time */
+	while(NULL != list)
+	{
+		r = untar(list->f, list->name);
+		fputs("The extraction of ", stderr);
+		fputs(list->name, stderr);
+		if(r) fputs(" was successful\n", stderr);
+		else fputs(" produced errors\n", stderr);
+		fclose(list->f);
+		list = list->next;
 	}
 
 	return 0;
