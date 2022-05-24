@@ -1208,6 +1208,8 @@ struct gz* load(char* name)
 		count3 = (scratch[2] & 0xFF);
 		count4 = (scratch[3] & 0xFF);
 		count = (count1 << 24) | (count2 << 16) | (count3 << 8) | count4;
+		require(0 < count, "FEXTRA field needs to be a positive number of bytes in size\n");
+		require(100000000 > count, "we don't support FEXTRA fields greater than 100MB in size\n");
 		r->FLG_FEXTRA = calloc(count + 1, sizeof(char));
 		fread(r->FLG_FEXTRA, sizeof(char), count, f);
 	}
@@ -1219,6 +1221,7 @@ struct gz* load(char* name)
 		do
 		{
 			c = fgetc(f);
+			require(0 <= c, "received a non-null terminated filename in the file\n");
 			r->FLG_FNAME[i] = c;
 			i = i + 1;
 		} while(0 != c);
@@ -1231,6 +1234,7 @@ struct gz* load(char* name)
 		do
 		{
 			c = fgetc(f);
+			require(0 <= c, "received a non-null terminated comment in the file\n");
 			r->FLG_FCOMMENT[i] = c;
 			i = i + 1;
 		} while(0 != c);
