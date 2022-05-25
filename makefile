@@ -39,17 +39,20 @@ match: match.c | bin
 mkdir: mkdir.c | bin
 	$(CC) $(CFLAGS) mkdir.c M2libc/bootstrappable.c -o bin/mkdir
 
-ungz: ungz.c | bin
-	$(CC) $(CFLAGS) ungz.c M2libc/bootstrappable.c -o bin/ungz
-
-untar: untar.c | bin
-	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o bin/untar
+rm: rm.c | bin
+	$(CC) $(CFLAGS) rm.c M2libc/bootstrappable.c -o bin/rm
 
 sha256sum: sha256sum.c | bin
 	$(CC) $(CFLAGS) sha256sum.c M2libc/bootstrappable.c -o bin/sha256sum
 
 sha3sum: sha3sum.c | bin
 	$(CC) $(CFLAGS) sha3sum.c M2libc/bootstrappable.c -o bin/sha3sum
+
+ungz: ungz.c | bin
+	$(CC) $(CFLAGS) ungz.c M2libc/bootstrappable.c -o bin/ungz
+
+untar: untar.c | bin
+	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o bin/untar
 
 # Clean up after ourselves
 .PHONY: clean
