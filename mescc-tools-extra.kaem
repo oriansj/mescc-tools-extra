@@ -37,3 +37,4 @@ CC catm.c -o ${BINDIR}/catm
 CC cp.c -o ${BINDIR}/cp
 CC chmod.c -o ${BINDIR}/chmod
 CC rm.c -o ${BINDIR}/rm
+CC replace.c -o ${BINDIR}/replace
