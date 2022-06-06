@@ -276,8 +276,11 @@ int untar(FILE *a, char const* path)
 		}
 		else if('5' == op)
 		{
-			fputs(" Extracting dir ", stdout);
-			puts(buff);
+			if(VERBOSE)
+			{
+				fputs(" Extracting dir ", stdout);
+				puts(buff);
+			}
 			create_dir(buff, parseoct(buff + 100, 8));
 			filesize = 0;
 		}
