@@ -72,6 +72,7 @@ void check_match()
 
 int main(int argc, char** argv)
 {
+	output_name = "/dev/stdout";
 	pattern = NULL;
 	replacement = NULL;
 	buffer_index = 0;
@@ -106,6 +107,17 @@ int main(int argc, char** argv)
 			replacement = argv[i+1];
 			require(NULL != replacement, "the --replace-with option requires a string to be given\n");
 			i = i + 2;
+		}
+		else if(match(argv[i], "-h") || match(argv[i], "--help"))
+		{
+			fputs("Usage: ", stderr);
+			fputs(argv[0], stderr);
+			fputs(" --file $input", stderr);
+			fputs(" --match-on $string", stderr);
+			fputs(" --replace-with $string", stderr);
+			fputs(" [--output $output] (or it'll dump to stdout)\n", stderr);
+			fputs("--help to get this message\n", stderr);
+			exit(EXIT_SUCCESS);
 		}
 		else
 		{
