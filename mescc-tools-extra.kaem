@@ -33,6 +33,7 @@ CC match.c -o ${BINDIR}/match
 CC mkdir.c -o ${BINDIR}/mkdir
 CC untar.c -o ${BINDIR}/untar
 CC ungz.c -o ${BINDIR}/ungz
+CC unbz2.c -o ${BINDIR}/unbz2
 CC catm.c -o ${BINDIR}/catm
 CC cp.c -o ${BINDIR}/cp
 CC chmod.c -o ${BINDIR}/chmod

@@ -18,7 +18,7 @@
 VPATH = bin:test/results
 PACKAGE = mescc-tools
 
-all: catm cp chmod match mkdir ungz untar sha256sum sha3sum
+all: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
 .NOTPARALLEL:
 CC=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -std=c99 -ggdb -fno-common
@@ -47,6 +47,9 @@ sha256sum: sha256sum.c | bin
 
 sha3sum: sha3sum.c | bin
 	$(CC) $(CFLAGS) sha3sum.c M2libc/bootstrappable.c -o bin/sha3sum
+
+unbz2: unbz2.c | bin
+	$(CC) $(CFLAGS) unbz2.c M2libc/bootstrappable.c -o bin/unbz2
 
 ungz: ungz.c | bin
 	$(CC) $(CFLAGS) ungz.c M2libc/bootstrappable.c -o bin/ungz
