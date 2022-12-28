@@ -120,6 +120,8 @@ struct bunzip_data
 	struct bwdata* bwdata;
 };
 
+int FUZZING;
+
 
 void crc_init(unsigned *crc_table, int little_endian)
 {
@@ -250,8 +252,8 @@ int read_block_header(struct bunzip_data *bd, struct bwdata *bw)
 	unsigned uc;
 	unsigned *length = calloc(MAX_SYMBOLS, sizeof(unsigned));
 	unsigned *temp = calloc(MAX_HUFCODE_BITS + 1, sizeof(unsigned));
-	int minLen;
-	int maxLen;
+	size_t minLen;
+	size_t maxLen;
 	int pp;
 #if defined(__M2__)
 	int int_array = sizeof(int);
@@ -260,6 +262,7 @@ int read_block_header(struct bunzip_data *bd, struct bwdata *bw)
 	int int_array = 1;
 	int group_data_array = 1;
 #endif
+	size_t hold;
 	// Read in header signature and CRC (which is stored big endian)
 	ii = get_bits(bd, 24);
 	jj = get_bits(bd, 24);
@@ -372,7 +375,7 @@ int read_block_header(struct bunzip_data *bd, struct bwdata *bw)
 
 		for(ii = 0; ii < symCount; ii += 1)
 		{
-			while(1)
+			while(TRUE)
 			{
 				// !hh || hh > MAX_HUFCODE_BITS in one test.
 				if(MAX_HUFCODE_BITS - 1 < hh - 1)
@@ -404,16 +407,14 @@ int read_block_header(struct bunzip_data *bd, struct bwdata *bw)
 
 		for(ii = 1; ii < symCount; ii += 1)
 		{
-			if(length[ii] > maxLen)
+			hold = length[ii];
+			if(hold > maxLen)
 			{
-				maxLen = length[ii];
+				maxLen = hold;
 			}
-			else
+			else if(hold < minLen)
 			{
-				if(length[ii] < minLen)
-				{
-					minLen = length[ii];
-				}
+				minLen = hold;
 			}
 		}
 
@@ -433,18 +434,24 @@ int read_block_header(struct bunzip_data *bd, struct bwdata *bw)
 		 * equals permute[hufcode_value - base[hufcode_bitcount]].
 		 */
 		hufGroup = bd->groups + (group_data_array * jj);
+		require(minLen > 0, "hufGroup minLen can't have negative values\n");
+		require(minLen <= MAX_HUFCODE_BITS, "hufGroup minLen can't exceed MAX_HUFCODE_BITS\n");
 		hufGroup->minLen = minLen;
+		require(maxLen > 0, "hufGroup maxLen can't have negative values\n");
+		require(maxLen <= MAX_HUFCODE_BITS, "hufGroup maxLen can't exceed MAX_HUFCODE_BITS\n");
 		hufGroup->maxLen = maxLen;
 		// Note that minLen cant be smaller than 1, so we adjust the base
 		// and limit array pointers so were not always wasting the first
 		// entry.  We do this again when using them (during symbol decoding).
 		base = hufGroup->base - (int_array * 1);
+		require(0 <= base, "can't have a negative hufGroup->base\n");
 		limit = hufGroup->limit - (int_array * 1);
 		// zero temp[] and limit[], and calculate permute[]
 		pp = 0;
 
 		for(ii = minLen; ii <= maxLen; ii += 1)
 		{
+			require(MAX_HUFCODE_BITS >= ii, "Invalid HUFCODE_BITS length\n");
 			temp[ii] = 0;
 			limit[ii] = 0;
 
@@ -452,6 +459,7 @@ int read_block_header(struct bunzip_data *bd, struct bwdata *bw)
 			{
 				if(length[hh] == ii)
 				{
+					require(MAX_SYMBOLS >= pp, "pp exceeded MAX_SYMBOLS\n");
 					hufGroup->permute[pp] = hh;
 					pp += 1;
 				}
@@ -461,7 +469,9 @@ int read_block_header(struct bunzip_data *bd, struct bwdata *bw)
 		// Count symbols coded for at each bit length
 		for(ii = 0; ii < symCount; ii += 1)
 		{
-			temp[length[ii]] += 1;
+			hold = length[ii];
+			require(MAX_HUFCODE_BITS >= hold, "Invalid HUFCODE_BITS length\n");
+			temp[hold] += 1;
 		}
 
 		/* Calculate limit[] (the largest symbol-coding value at each bit
@@ -545,7 +555,7 @@ int read_huffman_data(struct bunzip_data *bd, struct bwdata *bw)
 	hufGroup = 0;
 	hh = 0;
 
-	while(1)
+	while(TRUE)
 	{
 		// Have we reached the end of this huffman group?
 		if(!(symCount))
@@ -561,6 +571,7 @@ int read_huffman_data(struct bunzip_data *bd, struct bwdata *bw)
 			hufGroup = bd->groups + (group_data_array * bd->selectors[selector]);
 			selector += 1;
 			base = hufGroup->base - (int_array * 1);
+			require(0 <= base, "can't have negative hufGroup->base\n");
 			limit = hufGroup->limit - (int_array * 1);
 		}
 		else
@@ -791,7 +802,7 @@ int write_bunzip_data(struct bunzip_data *bd, struct bwdata *bw,
 	int i;
 	int crc_index;
 
-	while(1)
+	while(TRUE)
 	{
 		// If last read was short due to end of file, return last block now
 		if(bw->writeCount < 0)
@@ -1041,8 +1052,10 @@ void do_bunzip2(int in_fd, int out_fd)
 
 int main(int argc, char **argv)
 {
-	char *name;
-	char *dest;
+	char *name = NULL;
+	char *dest = NULL;
+	FUZZING = FALSE;
+
 	/* process arguments */
 	int i = 1;
 
@@ -1064,6 +1077,11 @@ int main(int argc, char **argv)
 			require(NULL != dest, "the --output option requires a filename to be given\n");
 			i += 2;
 		}
+		else if(match(argv[i], "--fuzzing-mode"))
+		{
+			FUZZING = TRUE;
+			i += 1;
+		}
 		else if(match(argv[i], "-h") || match(argv[i], "--help"))
 		{
 			fputs("Usage: ", stderr);
@@ -1082,6 +1100,13 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/* Deal with no input */
+	if(NULL == name)
+	{
+		fputs("an input file (--file $name) must be provided\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	int in_fd = open(name, 0, 0);
 
 	if(in_fd < 0)
@@ -1090,8 +1115,23 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	/* 577 is O_WRONLY|O_CREAT|O_TRUNC, 384 is 600 in octal */
-	int out_fd = open(dest, 577, 384);
+	/* If an output name isn't provided */
+	if(NULL == dest)
+	{
+		int length = strlen(name);
+		require(length > 4, "file name length not sufficient, please provide output name with --output $filename\n");
+	}
+
+	int out_fd;
+	if(FUZZING)
+	{
+		/* Dump to /dev/null the garbage data produced during fuzzing */
+		out_fd = open("/dev/null", O_WRONLY|O_CREAT|O_TRUNC, 0600);
+	}
+	else
+	{
+		out_fd = open(dest, O_WRONLY|O_CREAT|O_TRUNC, 0600);
+	}
 
 	if(out_fd < 0)
 	{
