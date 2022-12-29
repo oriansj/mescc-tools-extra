@@ -26,16 +26,16 @@ set -ex
 M2LIBC_PATH=${M2LIBC}
 PATH=${BINDIR}
 
-alias CC="${TOOLS}/M2-Mesoplanet --architecture ${ARCH} -f"
+alias CC="${TOOLS}/M2-Mesoplanet${EXE_SUFFIX} --architecture ${ARCH} -f"
 
-CC sha256sum.c -o ${BINDIR}/sha256sum
-CC match.c -o ${BINDIR}/match
-CC mkdir.c -o ${BINDIR}/mkdir
-CC untar.c -o ${BINDIR}/untar
-CC ungz.c -o ${BINDIR}/ungz
-CC unbz2.c -o ${BINDIR}/unbz2
-CC catm.c -o ${BINDIR}/catm
-CC cp.c -o ${BINDIR}/cp
-CC chmod.c -o ${BINDIR}/chmod
-CC rm.c -o ${BINDIR}/rm
-CC replace.c -o ${BINDIR}/replace
+CC sha256sum.c -o ${BINDIR}/sha256sum${EXE_SUFFIX}
+CC match.c -o ${BINDIR}/match${EXE_SUFFIX}
+CC mkdir.c -o ${BINDIR}/mkdir${EXE_SUFFIX}
+CC untar.c -o ${BINDIR}/untar${EXE_SUFFIX}
+CC ungz.c -o ${BINDIR}/ungz${EXE_SUFFIX}
+CC unbz2.c -o ${BINDIR}/unbz2${EXE_SUFFIX}
+CC catm.c -o ${BINDIR}/catm${EXE_SUFFIX}
+CC cp.c -o ${BINDIR}/cp${EXE_SUFFIX}
+CC chmod.c -o ${BINDIR}/chmod${EXE_SUFFIX}
+CC rm.c -o ${BINDIR}/rm${EXE_SUFFIX}
+CC replace.c -o ${BINDIR}/replace${EXE_SUFFIX}
