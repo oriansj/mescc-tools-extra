@@ -26,7 +26,7 @@ set -ex
 M2LIBC_PATH=${M2LIBC}
 PATH=${BINDIR}
 
-alias CC="${TOOLS}/M2-Mesoplanet${EXE_SUFFIX} ${OPERATING_SYSTEM_FLAG} --architecture ${ARCH} -f"
+alias CC="${TOOLS}/M2-Mesoplanet${EXE_SUFFIX} --operating-system ${OPERATING_SYSTEM} --architecture ${ARCH} -f"
 
 CC sha256sum.c -o ${BINDIR}/sha256sum${EXE_SUFFIX}
 CC match.c -o ${BINDIR}/match${EXE_SUFFIX}
