@@ -81,7 +81,7 @@ DESTDIR:=
 PREFIX:=/usr/local
 bindir:=$(DESTDIR)$(PREFIX)/bin
 .PHONY: install
-install: kaem get_machine
+install: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
 	mkdir -p $(bindir)
 	cp $^ $(bindir)
 
