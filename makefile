@@ -16,7 +16,7 @@
 
 # Prevent rebuilding
 VPATH = bin:test/results
-PACKAGE = mescc-tools
+PACKAGE = mescc-tools-extra
 
 all: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
 .NOTPARALLEL:
