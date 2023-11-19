@@ -14,7 +14,6 @@
 ## You should have received a copy of the GNU General Public License
 ## along with mescc-tools.  If not, see <http://www.gnu.org/licenses/>.
 
-# Prevent rebuilding
 PACKAGE = mescc-tools-extra
 
 all: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
