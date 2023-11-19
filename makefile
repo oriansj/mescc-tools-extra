@@ -15,7 +15,6 @@
 ## along with mescc-tools.  If not, see <http://www.gnu.org/licenses/>.
 
 # Prevent rebuilding
-VPATH = bin:test/results
 PACKAGE = mescc-tools-extra
 
 all: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
@@ -24,41 +23,64 @@ CC=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -std=c99 -ggdb -fno-common
 
 # Building with GCC
-catm: catm.c | bin
-	$(CC) $(CFLAGS) catm.c -o bin/catm
 
-cp: cp.c | bin
-	$(CC) $(CFLAGS) cp.c M2libc/bootstrappable.c -o bin/cp
+catm: bin/catm
 
-chmod: chmod.c | bin
-	$(CC) $(CFLAGS) chmod.c M2libc/bootstrappable.c -o bin/chmod
+bin/catm: catm.c | bin
+	$(CC) $(CFLAGS) catm.c -o $@
 
-match: match.c | bin
-	$(CC) $(CFLAGS) match.c M2libc/bootstrappable.c -o bin/match
+cp: bin/cp
 
-mkdir: mkdir.c | bin
-	$(CC) $(CFLAGS) mkdir.c M2libc/bootstrappable.c -o bin/mkdir
+bin/cp: cp.c | bin
+	$(CC) $(CFLAGS) cp.c M2libc/bootstrappable.c -o $@
 
-rm: rm.c | bin
-	$(CC) $(CFLAGS) rm.c M2libc/bootstrappable.c -o bin/rm
+chmod: bin/chmod
 
-sha256sum: sha256sum.c | bin
-	$(CC) $(CFLAGS) sha256sum.c M2libc/bootstrappable.c -o bin/sha256sum
+bin/chmod: chmod.c | bin
+	$(CC) $(CFLAGS) chmod.c M2libc/bootstrappable.c -o $@
 
-sha3sum: sha3sum.c | bin
-	$(CC) $(CFLAGS) sha3sum.c M2libc/bootstrappable.c -o bin/sha3sum
+match: bin/match
 
-unbz2: unbz2.c | bin
-	$(CC) $(CFLAGS) unbz2.c M2libc/bootstrappable.c -o bin/unbz2
+bin/match: match.c | bin
+	$(CC) $(CFLAGS) match.c M2libc/bootstrappable.c -o $@
 
-ungz: ungz.c | bin
-	$(CC) $(CFLAGS) ungz.c M2libc/bootstrappable.c -o bin/ungz
+mkdir: bin/mkdir
 
-untar: untar.c | bin
-	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o bin/untar
+bin/mkdir: mkdir.c | bin
+	$(CC) $(CFLAGS) mkdir.c M2libc/bootstrappable.c -o $@
+
+rm: bin/rm
+
+bin/rm: rm.c | bin
+	$(CC) $(CFLAGS) rm.c M2libc/bootstrappable.c -o $@
+
+sha256sum: bin/sha256sum
+
+bin/sha256sum: sha256sum.c | bin
+	$(CC) $(CFLAGS) sha256sum.c M2libc/bootstrappable.c -o $@
+
+sha3sum: bin/sha3sum
+
+bin/sha3sum: sha3sum.c | bin
+	$(CC) $(CFLAGS) sha3sum.c M2libc/bootstrappable.c -o $@
+
+unbz2: bin/unbz2
+
+bin/unbz2: unbz2.c | bin
+	$(CC) $(CFLAGS) unbz2.c M2libc/bootstrappable.c -o $@
+
+ungz: bin/ungz
+
+bin/ungz: ungz.c | bin
+	$(CC) $(CFLAGS) ungz.c M2libc/bootstrappable.c -o $@
+
+untar: bin/untar
+
+bin/untar: untar.c | bin
+	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o $@
 
 # Clean up after ourselves
-.PHONY: clean
+.PHONY: clean catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
 clean:
 	rm -rf bin/
 
@@ -81,7 +103,7 @@ DESTDIR:=
 PREFIX:=/usr/local
 bindir:=$(DESTDIR)$(PREFIX)/bin
 .PHONY: install
-install: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
+install: bin/catm bin/cp bin/chmod bin/match bin/mkdir bin/unbz2 bin/ungz bin/untar bin/sha256sum bin/sha3sum
 	mkdir -p $(bindir)
 	cp $^ $(bindir)
 
