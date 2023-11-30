@@ -109,6 +109,27 @@ void deny_setgroups() {
   close(fd);
 }
 
+char **copy_environment(char **newenv, char *variable) {
+  char *var_contents = getenv(variable);
+  size_t var_len = strlen(variable);
+  if (var_contents != NULL) {
+    *newenv = malloc(strlen(variable) + 2 + strlen(var_contents));
+    if (newenv[0] == NULL) {
+      fputs("Failed to allocate space for new environment\n", stderr);
+      exit(EXIT_FAILURE);
+    }
+    memcpy(*newenv, variable);
+    (*newenv)[var_len] = '=';
+    strcpy(*newenv + strlen(variable) + 1, var_contents);
+#ifdef __M2__
+    return newenv + sizeof(char *);
+#else
+    return newenv + 1;
+#endif
+  }
+  return newenv;
+}
+
 int main(int argc, char **argv) {
   if(argc <= 1) {
     fputs("Expected at least one argument: command\n", stderr);
@@ -157,38 +178,26 @@ int main(int argc, char **argv) {
   free(cwd);
 
 
-  char **newenv = malloc(3 * sizeof(char *));
-  int newenv_index = 0;
+  char **newenv = malloc(13 * sizeof(char *));
+  char **newenv_end = newenv;
   if (newenv == NULL) {
     fputs("Failed to allocate space for new environment\n", stderr);
     exit(EXIT_FAILURE);
   }
 
-  char *ARCH = getenv("ARCH");
-  if (ARCH != NULL) {
-    newenv[0] = malloc(6 + strlen(ARCH));
-    if (newenv[0] == NULL) {
-      fputs("Failed to allocate space for new environment\n", stderr);
-      exit(EXIT_FAILURE);
-    }
-    strcpy(newenv[0], "ARCH=");
-    strcpy(newenv[0] + 5, ARCH);
-    newenv_index += 1;
-  }
-
-  char *ARCH_DIR = getenv("ARCH_DIR");
-  if (ARCH_DIR != NULL) {
-    newenv[newenv_index] = malloc(10 + strlen(ARCH_DIR));
-    if (newenv[newenv_index] == NULL) {
-      fputs("Failed to allocate space for new environment\n", stderr);
-      exit(EXIT_FAILURE);
-    }
-    strcpy(newenv[newenv_index], "ARCH_DIR=");
-    strcpy(newenv[newenv_index] + 9, ARCH_DIR);
-    newenv_index += 1;
-  }
-
-  newenv[newenv_index] = NULL;
+  newenv_end = copy_environment(newenv_end, "ARCH");
+  newenv_end = copy_environment(newenv_end, "x86");
+  newenv_end = copy_environment(newenv_end, "M2LIBC");
+  newenv_end = copy_environment(newenv_end, "TOOLS");
+  newenv_end = copy_environment(newenv_end, "BLOOD_FLAG");
+  newenv_end = copy_environment(newenv_end, "BASE_ADDRESS");
+  newenv_end = copy_environment(newenv_end, "ENDIAN_FLAG");
+  newenv_end = copy_environment(newenv_end, "BINDIR");
+  newenv_end = copy_environment(newenv_end, "BUILDDIR");
+  newenv_end = copy_environment(newenv_end, "TMPDIR");
+  newenv_end = copy_environment(newenv_end, "OPERATING_SYSTEM");
+  newenv_end[0] = "WRAPPED=yes";
+  newenv_end[1] = NULL;
 
 
 #ifdef __M2__
