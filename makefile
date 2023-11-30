@@ -78,6 +78,11 @@ untar: bin/untar
 bin/untar: untar.c | bin
 	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o $@
 
+wrap: bin/wrap
+
+bin/wrap: wrap.c | bin
+	$(CC) $(CFLAGS) wrap.c -o bin/wrap
+
 # Clean up after ourselves
 .PHONY: clean catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
 clean:

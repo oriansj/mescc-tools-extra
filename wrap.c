@@ -118,7 +118,7 @@ char **copy_environment(char **newenv, char *variable) {
       fputs("Failed to allocate space for new environment\n", stderr);
       exit(EXIT_FAILURE);
     }
-    memcpy(*newenv, variable);
+    memcpy(*newenv, variable, var_len);
     (*newenv)[var_len] = '=';
     strcpy(*newenv + strlen(variable) + 1, var_contents);
 #ifdef __M2__
