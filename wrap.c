@@ -113,14 +113,14 @@ char **copy_environment(char **newenv, char *variable) {
   char *var_contents = getenv(variable);
   size_t var_len = strlen(variable);
   if (var_contents != NULL) {
-    *newenv = malloc(strlen(variable) + 2 + strlen(var_contents));
+    *newenv = malloc(var_len + 2 + strlen(var_contents));
     if (newenv[0] == NULL) {
       fputs("Failed to allocate space for new environment\n", stderr);
       exit(EXIT_FAILURE);
     }
     memcpy(*newenv, variable, var_len);
     (*newenv)[var_len] = '=';
-    strcpy(*newenv + strlen(variable) + 1, var_contents);
+    strcpy(*newenv + var_len + 1, var_contents);
 #ifdef __M2__
     return newenv + sizeof(char *);
 #else
