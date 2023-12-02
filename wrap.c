@@ -186,7 +186,7 @@ int main(int argc, char **argv) {
   }
 
   newenv_end = copy_environment(newenv_end, "ARCH");
-  newenv_end = copy_environment(newenv_end, "x86");
+  newenv_end = copy_environment(newenv_end, "ARCH_DIR");
   newenv_end = copy_environment(newenv_end, "M2LIBC");
   newenv_end = copy_environment(newenv_end, "TOOLS");
   newenv_end = copy_environment(newenv_end, "BLOOD_FLAG");
