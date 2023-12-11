@@ -7,29 +7,15 @@
 #define MS_BIND 4096
 #define MS_REC 16384
 #define MNT_DETACH 0x00000002
-#define _GNU_SOURCE
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <sys/stat.h>
 
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#ifdef __M2__
-
-#include <bootstrappable.h>
-
-#else
-
-extern int unshare(int flags);
-
-extern int mount(const char *source, const char *target,
-  const char *filesystemtype, unsigned long mountflags, const void *data);
-
-#endif
+#include "M2libc/bootstrappable.h"
 
 void touch(char *path) {
   int fd = open(path, O_CREAT, 0777);
