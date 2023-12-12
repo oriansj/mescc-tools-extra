@@ -39,3 +39,4 @@ CC cp.c -o ${BINDIR}/cp${EXE_SUFFIX}
 CC chmod.c -o ${BINDIR}/chmod${EXE_SUFFIX}
 CC rm.c -o ${BINDIR}/rm${EXE_SUFFIX}
 CC replace.c -o ${BINDIR}/replace${EXE_SUFFIX}
+CC wrap.c -o ${BINDIR}/wrap${EXE_SUFFIX}

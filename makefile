@@ -16,7 +16,7 @@
 
 PACKAGE = mescc-tools-extra
 
-all: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
+all: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum wrap
 .NOTPARALLEL:
 CC=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -std=c99 -ggdb -fno-common
@@ -78,8 +78,13 @@ untar: bin/untar
 bin/untar: untar.c | bin
 	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o $@
 
+wrap: bin/wrap
+
+bin/wrap: wrap.c | bin
+	$(CC) $(CFLAGS) wrap.c M2libc/bootstrappable.c -o $@
+
 # Clean up after ourselves
-.PHONY: clean catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum
+.PHONY: clean catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum wrap
 clean:
 	rm -rf bin/
 
@@ -102,7 +107,7 @@ DESTDIR:=
 PREFIX:=/usr/local
 bindir:=$(DESTDIR)$(PREFIX)/bin
 .PHONY: install
-install: bin/catm bin/cp bin/chmod bin/match bin/mkdir bin/unbz2 bin/ungz bin/untar bin/sha256sum bin/sha3sum
+install: bin/catm bin/cp bin/chmod bin/match bin/mkdir bin/unbz2 bin/ungz bin/untar bin/sha256sum bin/sha3sum bin/wrap
 	mkdir -p $(bindir)
 	cp $^ $(bindir)
 
