@@ -20,9 +20,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-// CONSTANT BUFFER_SIZE 4096
 #define BUFFER_SIZE 4096
 
+/********************************************************************************
+ * the reason why we are using read and write instead of fread and fwrite is    *
+ * because it is much faster and involves less copying of values around         *
+ ********************************************************************************/
 int main(int argc, char** argv)
 {
 	if(2 > argc)
@@ -31,7 +34,8 @@ int main(int argc, char** argv)
 		exit(EXIT_FAILURE);
 	}
 
-	int output = open(argv[1], 577 , 384);
+	/* create a new file with read/write permissions only */
+	int output = open(argv[1], O_TRUNC | O_CREAT | O_WRONLY , 0600);
 	if(-1 == output)
 	{
 		fputs("The file: ", stderr);

@@ -24,13 +24,7 @@
 #include "M2libc/bootstrappable.h"
 
 /* Define all of the constants */
-// CONSTANT FALSE 0
-#define FALSE 0
-// CONSTANT TRUE 1
-#define TRUE 1
-// CONSTANT MAX_STRING 4096
 #define MAX_STRING 4096
-// CONSTANT MAX_ARRAY 256
 #define MAX_ARRAY 256
 
 struct files

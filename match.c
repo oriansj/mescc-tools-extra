@@ -15,13 +15,13 @@
  * along with mescc-tools-extra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * "match" can be used to compare strings. It is useful to write conditional
- * code in kaem.
- *
- * Usage: match string1 string2
- * Returns: 0 if strings match
- */ 
+/********************************************************************************
+ * "match" can be used to compare strings. It is useful to write conditional    *
+ * code in kaem.                                                                *
+ *                                                                              *
+ * Usage: match string1 string2                                                 *
+ * Returns: 0 if strings match                                                  *
+ ********************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -30,10 +30,23 @@
 
 int main(int argc, char **argv)
 {
+	/* ensure correct number of arguments */
 	if(argc != 3)
 	{
 		fputs("match needs exactly 2 arguments.\n", stderr);
 		return 2;
+	}
+
+	/* deal with badly behaving shells calling */
+	if(NULL == argv[1])
+	{
+		fputs("You passed a null string\n", stderr);
+		return 3;
+	}
+	if(NULL == argv[2])
+	{
+		fputs("You passed a null string\n", stderr);
+		return 3;
 	}
 
 	return !match(argv[1], argv[2]);

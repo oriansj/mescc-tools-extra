@@ -29,9 +29,10 @@
  * No standard.
 */
 
-/* unbz2.c is a bz2 file decompression utility based on bzcat.c with
- * modifications to enable being built by M2-Planet with M2libc.
- */
+/********************************************************************************
+ * unbz2.c is a bz2 file decompression utility based on bzcat.c with            *
+ * modifications to enable being built by M2-Planet with M2libc.                *
+ ********************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -1120,6 +1121,12 @@ int main(int argc, char **argv)
 	{
 		int length = strlen(name);
 		require(length > 4, "file name length not sufficient, please provide output name with --output $filename\n");
+		/* Assume they want the output file name to be the input file name minus the .bz2 */
+		dest = calloc(length, sizeof(char));
+		require(NULL != dest, "Failed to allocate new output file name\n");
+		/* do name.bz2 => name */
+		strcpy(dest, name);
+		dest[length-3] = 0;
 	}
 
 	int out_fd;

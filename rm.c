@@ -15,13 +15,14 @@
  * along with mescc-tools-extra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * "rm" can be used to delete files. It can also delete
- * parent directories.
- *
- * Usage: rm <dir1>/<file1> <file2>
- *
- * These are all highly standard and portable headers. */
+/********************************************************************************
+ * "rm" can be used to delete files. It can also delete                         *
+ * parent directories.                                                          *
+ *                                                                              *
+ * Usage: rm <dir1>/<file1> <file2>                                             *
+ *                                                                              *
+ * These are all highly standard and portable headers.                          *
+ ********************************************************************************/
 #include <stdio.h>
 #include <string.h>
 
