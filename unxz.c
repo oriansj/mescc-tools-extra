@@ -61,7 +61,6 @@
 #define MAX_DIC_SIZE 1610612736  /* ~1.61 GB. 2 GiB is user virtual memory limit for many 32-bit systems. */
 #define MAX_DIC_SIZE_PROP 37
 #define MAX_MATCH_SIZE 273
-#define MAX_DICF_SIZE (MAX_DIC_SIZE + MAX_MATCH_SIZE)  /* Maximum number of bytes in global.dicf. */
 #define kNumTopBits 24
 #define kTopValue (1 << kNumTopBits)
 #define kNumBitModelTotalBits 11
@@ -126,6 +125,8 @@
 #define FILTER_ID_LZMA2 0x21
 // 65536 + 12 * 1 byte (sizeof(uint8_t)
 #define sizeof_readBuf 65548
+#define sizeof_writeBuf 0x1000000
+#define MAX_DICF_SIZE (MAX_DIC_SIZE + MAX_MATCH_SIZE + sizeof_writeBuf)  /* Maximum number of bytes in global.dicf. */
 #define DUMMY_ERROR 0 /* unexpected end of input stream */
 #define DUMMY_LIT 1
 #define DUMMY_MATCH 2
@@ -227,7 +228,7 @@ void FlushDiscardOldFromStartOfDic()
 	{
 		uint32_t delta = global->dicfPos - global->dicSize;
 
-		if(delta + MAX_MATCH_SIZE >= global->dicSize)
+		if(delta + MAX_MATCH_SIZE >= sizeof_writeBuf)
 		{
 			Flush();
 			global->dicf = memmove(global->dicf, global->dicf + delta, global->dicSize);
@@ -249,11 +250,13 @@ void GrowCapacity(uint32_t newCapacity)
 
 		/* Get our new block */
 		uint8_t* dicf = calloc(newCapacity, sizeof(uint8_t));
-		require(NULL != dicf, "GrowCapcity memory allocation failed");
+		require(NULL != dicf, "GrowCapacity memory allocation failed");
 
 		/* copy our old block into it  and get rid of the old block */
-		memcpy(dicf, global->dicf, global->allocCapacity);
-		if (NULL != global->dicf) free(global->dicf);
+		if (NULL != global->dicf) {
+			memcpy(dicf, global->dicf, global->allocCapacity);
+			free(global->dicf);
+		}
 
 		/* now track that new state */
 		global->dicf = dicf;
@@ -278,22 +281,22 @@ void FlushDiscardGrowDic(uint32_t dicfPosDelta)
 			/* start by assuming 64KB */
 			newCapacity = (1 << 16);
 
-			while(newCapacity < minCapacity)
+			while(newCapacity + MAX_MATCH_SIZE < minCapacity)
 			{
 				/* No overflow. */
 				if(newCapacity > global->dicSize)
 				{
-					newCapacity = global->dicSize << 1;
-					if(newCapacity < minCapacity)
+					newCapacity = global->dicSize;
+					if(newCapacity + MAX_MATCH_SIZE < minCapacity)
 					{
-						newCapacity = minCapacity;
+						newCapacity = minCapacity - MAX_MATCH_SIZE;
 					}
 					break;
 				}
 				newCapacity = newCapacity << 1;
 			}
 
-			GrowCapacity(newCapacity);
+			GrowCapacity(newCapacity + MAX_MATCH_SIZE);
 		}
 	}
 }
@@ -2174,6 +2177,7 @@ uint32_t DecompressXzOrLzma()
 			global->dicSize = ((2 | ((dicSizeProp) & 1)) << ((dicSizeProp) / 2 + 11));
 			/* TODO(pts): Free dic after use, also after realloc error. */
 			require(global->dicSize >= LZMA_DIC_MIN, "global->dicSize >= LZMA_DIC_MIN");
+			GrowCapacity(global->dicSize + MAX_MATCH_SIZE + sizeof_writeBuf);
 			bhs2 = global->readCur - readAtBlock + 5;
 
 			if(bhs2 > bhs) return SZ_ERROR_BLOCK_HEADER_TOO_LONG;
