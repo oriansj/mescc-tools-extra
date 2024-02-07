@@ -360,8 +360,6 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 
 		bound = (range >> kNumBitModelTotalBits) * ttt;
 
-
-
 		if(code < bound)
 		{
 			range = bound;
@@ -382,7 +380,6 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 					prob = p + 4 *(LZMA_LIT_SIZE * ((((processedPos & lpMask) << lc) + (0xFF & dicl[diclPos - 1])) >> (8 - lc)));
 				}
 			}
-
 
 			if(state < kNumLitStates)
 			{
@@ -2066,6 +2063,9 @@ uint32_t DecompressXzOrLzma()
 		return SZ_OK;
 	}
 
+	global->allocCapacity = 0;
+	global->dicf = NULL;
+
 	while(TRUE)
 	{
 		/* Based on https://tukaani.org/xz/xz-file-format-1.0.4.txt */
@@ -2085,8 +2085,6 @@ uint32_t DecompressXzOrLzma()
 
 		/* Also ignore the CRC32 after checksumSize. */
 		global->readCur = global->readCur + 12;
-		global->allocCapacity = 0;
-		global->dicf = NULL;
 
 		while(TRUE)
 		{
