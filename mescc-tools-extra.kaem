@@ -34,6 +34,7 @@ CC mkdir.c -o ${BINDIR}/mkdir${EXE_SUFFIX}
 CC untar.c -o ${BINDIR}/untar${EXE_SUFFIX}
 CC ungz.c -o ${BINDIR}/ungz${EXE_SUFFIX}
 CC unbz2.c -o ${BINDIR}/unbz2${EXE_SUFFIX}
+CC unxz.c -o ${BINDIR}/unxz${EXE_SUFFIX}
 CC catm.c -o ${BINDIR}/catm${EXE_SUFFIX}
 CC cp.c -o ${BINDIR}/cp${EXE_SUFFIX}
 CC chmod.c -o ${BINDIR}/chmod${EXE_SUFFIX}

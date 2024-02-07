@@ -16,7 +16,7 @@
 
 PACKAGE = mescc-tools-extra
 
-all: catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum wrap
+all: catm cp chmod match mkdir unbz2 ungz untar unxz sha256sum sha3sum wrap
 .NOTPARALLEL:
 CC=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -std=c99 -ggdb -fno-common
@@ -78,13 +78,18 @@ untar: bin/untar
 bin/untar: untar.c | bin
 	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o $@
 
+unxz: bin/unxz
+
+bin/unxz: unxz.c | bin
+	$(CC) $(CFLAGS) -Wno-incompatible-pointer-types unxz.c M2libc/bootstrappable.c -o $@
+
 wrap: bin/wrap
 
 bin/wrap: wrap.c | bin
 	$(CC) $(CFLAGS) wrap.c M2libc/bootstrappable.c -o $@
 
 # Clean up after ourselves
-.PHONY: clean catm cp chmod match mkdir unbz2 ungz untar sha256sum sha3sum wrap
+.PHONY: clean catm cp chmod match mkdir unbz2 ungz untar unxz sha256sum sha3sum wrap
 clean:
 	rm -rf bin/
 
