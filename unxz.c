@@ -61,7 +61,6 @@
 #define MAX_DIC_SIZE 1610612736  /* ~1.61 GB. 2 GiB is user virtual memory limit for many 32-bit systems. */
 #define MAX_DIC_SIZE_PROP 37
 #define MAX_MATCH_SIZE 273
-#define MAX_DICF_SIZE (MAX_DIC_SIZE + MAX_MATCH_SIZE)  /* Maximum number of bytes in global.dicf. */
 #define kNumTopBits 24
 #define kTopValue (1 << kNumTopBits)
 #define kNumBitModelTotalBits 11
@@ -126,12 +125,17 @@
 #define FILTER_ID_LZMA2 0x21
 // 65536 + 12 * 1 byte (sizeof(uint8_t)
 #define sizeof_readBuf 65548
+#define sizeof_writeBuf 0x1000000
+#define MAX_DICF_SIZE (MAX_DIC_SIZE + MAX_MATCH_SIZE + sizeof_writeBuf)  /* Maximum number of bytes in global.dicf. */
 #define DUMMY_ERROR 0 /* unexpected end of input stream */
 #define DUMMY_LIT 1
 #define DUMMY_MATCH 2
 #define DUMMY_REP 3
 /* (LZMA_BASE_SIZE + (LZMA_LIT_SIZE << LZMA2_LCLP_MAX)) */
 #define probs_size 14134
+#define BIT31 (1<<31)
+#define BITS32 (0x7FFFFFFF | BIT31)
+#define HIGHBITS (0xFFFFFFFF - BITS32)
 
 FILE* destination;
 FILE* source;
@@ -227,7 +231,7 @@ void FlushDiscardOldFromStartOfDic()
 	{
 		uint32_t delta = global->dicfPos - global->dicSize;
 
-		if(delta + MAX_MATCH_SIZE >= global->dicSize)
+		if(delta + MAX_MATCH_SIZE >= sizeof_writeBuf)
 		{
 			Flush();
 			global->dicf = memmove(global->dicf, global->dicf + delta, global->dicSize);
@@ -249,11 +253,13 @@ void GrowCapacity(uint32_t newCapacity)
 
 		/* Get our new block */
 		uint8_t* dicf = calloc(newCapacity, sizeof(uint8_t));
-		require(NULL != dicf, "GrowCapcity memory allocation failed");
+		require(NULL != dicf, "GrowCapacity memory allocation failed");
 
 		/* copy our old block into it  and get rid of the old block */
-		memcpy(dicf, global->dicf, global->allocCapacity);
-		if (NULL != global->dicf) free(global->dicf);
+		if (NULL != global->dicf) {
+			memcpy(dicf, global->dicf, global->allocCapacity);
+			free(global->dicf);
+		}
 
 		/* now track that new state */
 		global->dicf = dicf;
@@ -278,22 +284,22 @@ void FlushDiscardGrowDic(uint32_t dicfPosDelta)
 			/* start by assuming 64KB */
 			newCapacity = (1 << 16);
 
-			while(newCapacity < minCapacity)
+			while(newCapacity + MAX_MATCH_SIZE < minCapacity)
 			{
 				/* No overflow. */
 				if(newCapacity > global->dicSize)
 				{
-					newCapacity = global->dicSize << 1;
-					if(newCapacity < minCapacity)
+					newCapacity = global->dicSize;
+					if(newCapacity + MAX_MATCH_SIZE < minCapacity)
 					{
-						newCapacity = minCapacity;
+						newCapacity = minCapacity - MAX_MATCH_SIZE;
 					}
 					break;
 				}
 				newCapacity = newCapacity << 1;
 			}
 
-			GrowCapacity(newCapacity);
+			GrowCapacity(newCapacity + MAX_MATCH_SIZE);
 		}
 	}
 }
@@ -363,7 +369,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 		if(code < bound)
 		{
 			range = bound;
-			prob[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+			prob[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 			p = probs;
 			prob = p + 4 * Literal;
 
@@ -403,14 +409,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 					if(code < bound)
 					{
 						range = bound;
-						prob[symbol] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+						prob[symbol] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[symbol]);
 						symbol = (symbol + symbol);
 					}
 					else
 					{
 						range = range - bound;
 						code = code - bound;
-						prob[symbol] = (ttt - (ttt >> kNumMoveBits));
+						prob[symbol] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[symbol]);
 						symbol = (symbol + symbol) + 1;
 					}
 				} while(symbol < 0x100);
@@ -447,7 +453,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 					if(code < bound)
 					{
 						range = bound;
-						probLit[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+						probLit[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & probLit[0]);
 						symbol = (symbol + symbol);
 						offs = offs & ~bit;
 					}
@@ -455,7 +461,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 					{
 						range = range - bound;
 						code = code - bound;
-						probLit[0] = (ttt - (ttt >> kNumMoveBits));
+						probLit[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & probLit[0]);
 						symbol = (symbol + symbol) + 1;
 						offs = offs & bit;
 					}
@@ -471,7 +477,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 				diclPos = global->dicfPos;
 			}
 
-			dicl[diclPos] = (0xFF & symbol) | (0xFFFFFF00 & dicl[diclPos]);
+			dicl[diclPos] = (0xFF & symbol) | ((~0xFF) & dicl[diclPos]);
 			diclPos = diclPos + 1;
 			processedPos = processedPos + 1;
 			continue;
@@ -480,7 +486,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 		{
 			range = range - bound;
 			code = code - bound;
-			prob[0] = (ttt - (ttt >> kNumMoveBits));
+			prob[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 			p = probs;
 			prob = p + 4 * (IsRep + state);
 			ttt = prob[0];
@@ -497,7 +503,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 			if(code < bound)
 			{
 				range = bound;
-				prob[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+				prob[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 				state = state + kNumStates;
 				p = probs;
 				prob = p + 4 * LenCoder;
@@ -506,7 +512,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 			{
 				range = range - bound;
 				code = code - bound;
-				prob[0] = (ttt - (ttt >> kNumMoveBits));
+				prob[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 
 				require((checkDicSize != 0) || (processedPos != 0), "checkDicsize == 0 && processPos == 0");
 
@@ -526,7 +532,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 				if(code < bound)
 				{
 					range = bound;
-					prob[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+					prob[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 					p = probs;
 					prob = p + 4 * (IsRep0Long + (state << kNumPosBitsMax) + posState);
 					ttt = prob[0];
@@ -543,7 +549,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 					if(code < bound)
 					{
 						range = bound;
-						prob[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+						prob[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 
 						if(diclPos >= global->allocCapacity)
 						{
@@ -554,8 +560,8 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 							diclPos = global->dicfPos;
 						}
 
-						if(diclPos < rep0) dicl[diclPos] = (0xFF & dicl[(diclPos - rep0) + diclLimit]) | (0xFFFFFF00 & dicl[diclPos]);
-						else dicl[diclPos] = (0xFF & dicl[(diclPos - rep0)]) | (0xFFFFFF00 & dicl[diclPos]);
+						if(diclPos < rep0) dicl[diclPos] = (0xFF & dicl[(diclPos - rep0) + diclLimit]) | ((~0xFF) & dicl[diclPos]);
+						else dicl[diclPos] = (0xFF & dicl[(diclPos - rep0)]) | ((~0xFF) & dicl[diclPos]);
 
 						diclPos = diclPos + 1;
 						processedPos = processedPos + 1;
@@ -568,13 +574,13 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 
 					range = range - bound;
 					code = code - bound;
-					prob[0] = (ttt - (ttt >> kNumMoveBits));
+					prob[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 				}
 				else
 				{
 					range = range - bound;
 					code = code - bound;
-					prob[0] = (ttt - (ttt >> kNumMoveBits));
+					prob[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 					p = probs;
 					prob = p + 4 * (IsRepG1 + state);
 					ttt = prob[0];
@@ -591,14 +597,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 					if(code < bound)
 					{
 						range = bound;
-						prob[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+						prob[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 						distance = rep1;
 					}
 					else
 					{
 						range = range - bound;
 						code = code - bound;
-						prob[0] = (ttt - (ttt >> kNumMoveBits));
+						prob[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 						p = probs;
 						prob = p + 4 * (IsRepG2 + state);
 						ttt = prob[0];
@@ -615,14 +621,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 						if(code < bound)
 						{
 							range = bound;
-							prob[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+							prob[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 							distance = rep2;
 						}
 						else
 						{
 							range = range - bound;
 							code = code - bound;
-							prob[0] = (ttt - (ttt >> kNumMoveBits));
+							prob[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[0]);
 							distance = rep3;
 							rep3 = rep2;
 						}
@@ -657,7 +663,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 			if(code < bound)
 			{
 				range = bound;
-				probLen[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+				probLen[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & probLen[0]);
 				p = prob;
 				probLen = p + 4 * (LenLow + (posState << kLenNumLowBits));
 				offset = 0;
@@ -667,7 +673,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 			{
 				range = range - bound;
 				code = code - bound;
-				probLen[0] = (ttt - (ttt >> kNumMoveBits));
+				probLen[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & probLen[0]);
 				p = prob;
 				probLen = p + 4 * LenChoice2;
 				ttt = probLen[0];
@@ -684,7 +690,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 				if(code < bound)
 				{
 					range = bound;
-					probLen[0] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+					probLen[0] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & probLen[0]);
 					p = prob;
 					probLen = p + 4 * (LenMid + (posState << kLenNumMidBits));
 					offset = kLenNumLowSymbols;
@@ -694,7 +700,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 				{
 					range = range - bound;
 					code = code - bound;
-					probLen[0] = (ttt - (ttt >> kNumMoveBits));
+					probLen[0] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & probLen[0]);
 					p = prob;
 					probLen = p + 4 * LenHigh;
 					offset = kLenNumLowSymbols + kLenNumMidSymbols;
@@ -720,14 +726,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 				if(code < bound)
 				{
 					range = bound;
-					probLen[len] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+					probLen[len] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & probLen[len]);
 					len = (len + len);
 				}
 				else
 				{
 					range = range - bound;
 					code = code - bound;
-					probLen[len] = (ttt - (ttt >> kNumMoveBits));
+					probLen[len] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & probLen[len]);
 					len = (len + len) + 1;
 				}
 			} while(len < limita);
@@ -756,14 +762,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 					if(code < bound)
 					{
 						range = bound;
-						prob[distance] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+						prob[distance] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[distance]);
 						distance = (distance + distance);
 					}
 					else
 					{
 						range = range - bound;
 						code = code - bound;
-						prob[distance] = (ttt - (ttt >> kNumMoveBits));
+						prob[distance] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[distance]);
 						distance = (distance + distance) + 1;
 					}
 				} while(distance < (1 << 6));
@@ -800,14 +806,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 							if(code < bound)
 							{
 								range = bound;
-								prob[i] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+								prob[i] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 								i = (i + i);
 							}
 							else
 							{
 								range = range - bound;
 								code = code - bound;
-								prob[i] = (ttt - (ttt >> kNumMoveBits));
+								prob[i] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 								i = (i + i) + 1;
 								distance = distance | mask;
 							}
@@ -857,14 +863,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 						if(code < bound)
 						{
 							range = bound;
-							prob[i] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i);
 						}
 						else
 						{
 							range = range - bound;
 							code = code - bound;
-							prob[i] = (ttt - (ttt >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i) + 1;
 							distance = distance | 1;
 						}
@@ -883,14 +889,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 						if(code < bound)
 						{
 							range = bound;
-							prob[i] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i);
 						}
 						else
 						{
 							range = range - bound;
 							code = code - bound;
-							prob[i] = (ttt - (ttt >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i) + 1;
 							distance = distance | 2;
 						}
@@ -909,14 +915,14 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 						if(code < bound)
 						{
 							range = bound;
-							prob[i] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i);
 						}
 						else
 						{
 							range = range - bound;
 							code = code - bound;
-							prob[i] = (ttt - (ttt >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i) + 1;
 							distance = distance | 4;
 						}
@@ -935,19 +941,19 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 						if(code < bound)
 						{
 							range = bound;
-							prob[i] = (ttt + ((kBitModelTotal - ttt) >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt + ((kBitModelTotal - ttt) >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i);
 						}
 						else
 						{
 							range = range - bound;
 							code = code - bound;
-							prob[i] = (ttt - (ttt >> kNumMoveBits));
+							prob[i] = (BITS32 & ((ttt - (ttt >> kNumMoveBits)))) | (HIGHBITS & prob[i]);
 							i = (i + i) + 1;
 							distance = distance | 8;
 						}
 
-						if(distance == 0xFFFFFFFF)
+						if(distance == BITS32)
 						{
 							len = len + kMatchSpecLenStart;
 							state = state - kNumStates;
@@ -1004,7 +1010,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 				/* overlapping memcpy of sorts */
 				while(n > 0)
 				{
-					dicl[diclPos + i] = (0xFF & dicl[pos + i]) | (0xFFFFFF00 & dicl[diclPos + i]);
+					dicl[diclPos + i] = (0xFF & dicl[pos + i]) | ((~0xFF) & dicl[diclPos + i]);
 					i = i + 1;
 					n = n - 1;
 				}
@@ -1014,7 +1020,7 @@ void LzmaDec_DecodeReal(uint32_t limit, uint8_t *bufLimit)
 			{
 				do
 				{
-					dicl[diclPos] = (0xFF & dicl[pos]) | (0xFFFFFF00 & dicl[diclPos]);
+					dicl[diclPos] = (0xFF & dicl[pos]) | ((~0xFF) & dicl[diclPos]);
 					diclPos = diclPos + 1;
 					pos = pos + 1;
 
@@ -1088,8 +1094,8 @@ void LzmaDec_WriteRem(uint32_t limit)
 		while(len != 0)
 		{
 			len = len - 1;
-			if(diclPos < rep0) dicl[diclPos] = (0xFF & dicl[(diclPos - rep0) + diclLimit]) | (0xFFFFFF00 & dicl[diclPos]);
-			else dicl[diclPos] = (0xFF & dicl[diclPos - rep0]) | (0xFFFFFF00 & dicl[diclPos]);
+			if(diclPos < rep0) dicl[diclPos] = (0xFF & dicl[(diclPos - rep0) + diclLimit]) | ((~0xFF) & dicl[diclPos]);
+			else dicl[diclPos] = (0xFF & dicl[diclPos - rep0]) | ((~0xFF) & dicl[diclPos]);
 			diclPos = diclPos + 1;
 		}
 
@@ -1236,11 +1242,11 @@ int LzmaDec_TryDummy(uint8_t* buf, uint32_t inSize)
 		}
 		else
 		{
-			if(global->dicfPos < global->reps[0])
+			if(global->dicfPos < (global->reps[0] & BITS32))
 			{
-				hold = global->dicfPos - global->reps[0] + global->dicfLimit;
+				hold = global->dicfPos - (global->reps[0] & BITS32) + global->dicfLimit;
 			}
-			else hold = global->dicfPos - global->reps[0];
+			else hold = global->dicfPos - (global->reps[0] & BITS32);
 			matchByte = 0xFF & global->dicf[hold];
 
 			offs = 0x100;
@@ -1620,7 +1626,7 @@ int LzmaDec_TryDummy(uint8_t* buf, uint32_t inSize)
 						}
 
 						range = range >> 1;
-						code = code - (range & (((code - range) >> 31) - 1));
+						code = code - (range & ((((code - range) >> 31) & 1) - 1));
 						numDirectBits = numDirectBits - 1;
 					} while(numDirectBits != 0);
 
@@ -1686,7 +1692,7 @@ int LzmaDec_TryDummy(uint8_t* buf, uint32_t inSize)
 void LzmaDec_InitRc(uint8_t* data)
 {
 	global->code = ((0xFF & data[1]) << 24) | ((0xFF & data[2]) << 16) | ((0xFF & data[3]) << 8) | (0xFF & data[4]);
-	global->range = 0xFFFFFFFF;
+	global->range = BITS32;
 	global->needFlush = FALSE;
 }
 
@@ -1717,7 +1723,7 @@ void LzmaDec_InitStateReal()
 
 	for(i = 0; i < numProbs; i = i + 1)
 	{
-		probs[i] = kBitModelTotal >> 1;
+		probs[i] = (BITS32 & (kBitModelTotal >> 1)) | (HIGHBITS & probs[i]);
 	}
 
 	global->reps[0] = 1; global->reps[1] = 1; global->reps[2] = 1; global->reps[3] = 1;
@@ -1888,7 +1894,7 @@ uint32_t Preread(uint32_t r)
 			if(EOF == hold) break;
 
 			/* otherwise just add it */
-			global->readEnd[0] = (0xFF & hold) | (0xFFFFFF00 & global->readEnd[0]);
+			global->readEnd[0] = (0xFF & hold) | ((~0xFF) & global->readEnd[0]);
 			global->readEnd = global->readEnd + 1;
 			p = p + 1;
 		}
@@ -1935,7 +1941,7 @@ void InitDecode()
 	global->needInitState = TRUE;
 	global->needInitProp = TRUE;
 	global->writtenPos = 0;
-	global->writeRemaining = ~0;
+	global->writeRemaining = BITS32;
 	global->discardedSize = 0;
 	global->dicfPos = 0;
 	LzmaDec_InitDicAndState(TRUE, TRUE);
@@ -2015,7 +2021,7 @@ uint32_t DecompressXzOrLzma()
 		/* sanity check for lzma */
 		require((0xFF & global->readCur[0]) <= 225, "lzma check 1 failed");
 		require((0xFF & global->readCur[13]) == 0, "lzma check 2 failed");
-		require((((bhf = GetLE4(global->readCur + 9)) == 0) || (bhf == ~0)), "lzma check 3 failed");
+		require((((bhf = GetLE4(global->readCur + 9)) == 0) || (bhf == BITS32)), "lzma check 3 failed");
 		require((global->dicSize = GetLE4(global->readCur + 1)) >= LZMA_DIC_MIN, "lzma check 4 failed");
 
 		/* Based on https://svn.python.org/projects/external/xz-5.0.3/doc/lzma-file-format.txt */
@@ -2047,7 +2053,7 @@ uint32_t DecompressXzOrLzma()
 
 			if((srcLen = Preread(sizeof_readBuf)) == 0)
 			{
-				if(us != ~0) return SZ_ERROR_INPUT_EOF;
+				if(us != BITS32) return SZ_ERROR_INPUT_EOF;
 				break;
 			}
 
@@ -2174,6 +2180,7 @@ uint32_t DecompressXzOrLzma()
 			global->dicSize = ((2 | ((dicSizeProp) & 1)) << ((dicSizeProp) / 2 + 11));
 			/* TODO(pts): Free dic after use, also after realloc error. */
 			require(global->dicSize >= LZMA_DIC_MIN, "global->dicSize >= LZMA_DIC_MIN");
+			GrowCapacity(global->dicSize + MAX_MATCH_SIZE + sizeof_writeBuf);
 			bhs2 = global->readCur - readAtBlock + 5;
 
 			if(bhs2 > bhs) return SZ_ERROR_BLOCK_HEADER_TOO_LONG;
