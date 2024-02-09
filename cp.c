@@ -108,7 +108,7 @@ char* directory_dest(char* dest, char* source, int require_directory)
 		if(0 <= chdir(chdir_dest))
 		{ /* chdir returned successfully */
 			/*
-			 * But because of M2-Planet, that dosen't mean anything actually
+			 * But because of M2-Planet, that doesn't mean anything actually
 			 * happened, check that before we go any further.
 			 */
 			char* new_path = calloc(MAX_STRING, sizeof(char));
