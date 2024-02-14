@@ -1909,6 +1909,7 @@ void IgnoreVarint()
 	{
 		global->readCur = global->readCur + 1;
 	}
+	global->readCur = global->readCur + 1;
 }
 
 uint32_t IgnoreZeroBytes(uint32_t c)
@@ -2110,10 +2111,8 @@ uint32_t DecompressXzOrLzma()
 					/* a varint is at most 9 bytes long, but may be shorter */
 					Preread(9);
 					IgnoreVarint();
-					global->readCur = global->readCur + 1;
 					Preread(9);
 					IgnoreVarint();
-					global->readCur = global->readCur + 1;
 					numRecords = numRecords - 1;
 				}
 				/* Synchronize to 4-byte boundary */
@@ -2145,7 +2144,7 @@ uint32_t DecompressXzOrLzma()
 			if((bhf & 20) != 0) return SZ_ERROR_BAD_BLOCK_FLAGS;
 			/* Compressed size present. */
 			/* Usually not present, just ignore it. */
-			if((bhf & 64 != 0)) IgnoreVarint();
+			if((bhf & 64) != 0) IgnoreVarint();
 			/* Uncompressed size present. */
 			/* Usually not present, just ignore it. */
 			if((bhf & 128) != 0) IgnoreVarint();
