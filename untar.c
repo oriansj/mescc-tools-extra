@@ -265,7 +265,12 @@ int untar(FILE *a, char const* path)
 				puts(buff);
 			}
 			if(!FUZZING) {
-				symlink(target, buff);
+				int symlink_ret;
+				symlink_ret = symlink(target, buff);
+				if (symlink_ret != 0) {
+					fputs("Failed to create symlink\n", stderr);
+					if(STRICT) exit(EXIT_FAILURE);
+				}
 			}
 		}
 		else if('3' == op)
