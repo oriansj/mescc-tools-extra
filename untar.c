@@ -233,6 +233,15 @@ int untar(FILE *a, char const* path)
 
 		filesize = parseoct(buff + 124, 12);
 
+		/**
+		 * Long linknames are stored in a special file with the name "././@LongLink"
+		 * and are unsupported by this program.
+		 */
+		if (strcmp(buff, "././@LongLink") == 0) {
+			fputs("unable to create long symlink\n", stderr);
+			exit(EXIT_FAILURE);
+		}
+
 		op = buff[156];
 		if('1' == op)
 		{
@@ -246,13 +255,18 @@ int untar(FILE *a, char const* path)
 		}
 		else if('2' == op)
 		{
-			if(STRICT)
+			char target[101];
+
+			memcpy(target, buff + 157, 100);
+			target[100] = '\0';
+			if(VERBOSE)
 			{
-				fputs("unable to create symlinks\n", stderr);
-				exit(EXIT_FAILURE);
+				fputs(" Extracting file ", stdout);
+				puts(buff);
 			}
-			fputs(" Ignoring symlink ", stdout);
-			puts(buff);
+			if(!FUZZING) {
+				symlink(target, buff);
+			}
 		}
 		else if('3' == op)
 		{
