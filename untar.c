@@ -188,10 +188,12 @@ int verify_checksum(char const* p)
 /* Extract a tar archive. */
 int untar(FILE *a, char const* path)
 {
+	char target[101];
 	char* buff = calloc(514, sizeof(char));
 	FILE* f = NULL;
 	size_t bytes_read;
 	size_t bytes_written;
+	int symlink_ret;
 	int filesize;
 	int op;
 	if(VERBOSE)
@@ -255,8 +257,6 @@ int untar(FILE *a, char const* path)
 		}
 		else if('2' == op)
 		{
-			char target[101];
-
 			memcpy(target, buff + 157, 100);
 			target[100] = '\0';
 			if(VERBOSE)
@@ -265,7 +265,6 @@ int untar(FILE *a, char const* path)
 				puts(buff);
 			}
 			if(!FUZZING) {
-				int symlink_ret;
 				symlink_ret = symlink(target, buff);
 				if (symlink_ret != 0) {
 					fputs("Failed to create symlink\n", stderr);
