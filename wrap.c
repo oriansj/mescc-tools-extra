@@ -1,21 +1,19 @@
 /* SPDX-FileCopyrightText: 2023 Max Hearnden <max@hearnden.org.uk> */
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
-
-#define CLONE_NEWUSER 0x10000000
-#define CLONE_NEWNS 0x00020000
-#define MS_BIND 4096
-#define MS_REC 16384
-#define MNT_DETACH 0x00000002
-
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
 #include "M2libc/bootstrappable.h"
+
+#define CLONE_NEWUSER 0x10000000
+#define CLONE_NEWNS 0x00020000
+#define MS_BIND 4096
+#define MS_REC 16384
+#define MNT_DETACH 0x00000002
 
 void touch(char *path)
 {
