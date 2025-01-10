@@ -188,7 +188,7 @@ int verify_checksum(char const* p)
 /* Extract a tar archive. */
 int untar(FILE *a, char const* path)
 {
-	char target[101];
+	char* target = calloc(101, sizeof(char));
 	char* buff = calloc(514, sizeof(char));
 	FILE* f = NULL;
 	size_t bytes_read;
