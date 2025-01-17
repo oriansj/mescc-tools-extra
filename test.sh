@@ -54,7 +54,7 @@ tar --no-recursion -cf bin/tests/check.tar bin/tests/abc bin/tests/abcd bin/test
 
 	../../untar --file ../check.tar
 
-	../..//sha256sum -c ../checks
+	../../sha256sum -c ../checks
 	ls -l bin/tests/null bin/tests/dir1/null1
 )
 echo 'tar tests done'
