@@ -1342,7 +1342,7 @@ int main(int argc, char **argv)
 
 	if (0 != ret->error)
 	{
-		fputs("puff() failed with return code ", stderr);
+		fputs("\npuff() failed with return code ", stderr);
 		fputs(int2str(ret->error, 10, TRUE), stderr);
 		fputc('\n', stderr);
 		exit(3);
