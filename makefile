@@ -76,7 +76,7 @@ bin/ungz: ungz.c | bin
 untar: bin/untar
 
 bin/untar: untar.c | bin
-	$(CC) $(CFLAGS) untar.c M2libc/bootstrappable.c -o $@
+	$(CC) $(CFLAGS) -Wno-implicit-function-declaration untar.c M2libc/bootstrappable.c -o $@
 
 unxz: bin/unxz
 
@@ -86,7 +86,7 @@ bin/unxz: unxz.c | bin
 wrap: bin/wrap
 
 bin/wrap: wrap.c | bin
-	$(CC) $(CFLAGS) wrap.c M2libc/bootstrappable.c -o $@
+	$(CC) $(CFLAGS) -Wno-implicit-function-declaration wrap.c M2libc/bootstrappable.c -o $@
 
 # Clean up after ourselves
 .PHONY: clean catm cp chmod match mkdir unbz2 ungz untar unxz sha256sum sha3sum wrap
