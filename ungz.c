@@ -874,12 +874,6 @@ int* dynamic_order()
 
 int dynamic(struct state *s)
 {
-	#if defined(__M2__)
-		int array = sizeof(int);
-	#else
-		int array = 1;
-	#endif
-
 	int nlen;
 	int ndist;
 	int ncode;                          /* number of lengths in descriptor */
@@ -975,7 +969,8 @@ int dynamic(struct state *s)
 	if((0 != err) && (nlen != (lencode->count[0] + lencode->count[1]))) return -7;
 
 	/* build huffman table for distance codes */
-	set = lengths + (nlen * array);
+	set = lengths;
+	set += nlen;
 	err = construct(distcode, set, ndist);
 
 	/* incomplete code ok only for single length 1 code */
