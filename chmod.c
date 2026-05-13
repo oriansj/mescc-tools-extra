@@ -49,6 +49,7 @@ int main(int argc, char** argv)
 	verbose = FALSE;
 
 	int i = 1;
+	int r;
 	/* Loop arguments */
 	while(i <= argc)
 	{
@@ -126,7 +127,14 @@ int main(int argc, char** argv)
 		}
 
 		/* Perform the chmod */
-		chmod(f->name, omode);
+		r = chmod(f->name, omode);
+		if(r != 0)
+		{
+			fputs("unable to change mode of file: ", stderr);
+			fputs(f->name, stderr);
+			fputs("\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		f = f->next;
 	}
 }
