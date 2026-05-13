@@ -213,11 +213,13 @@ int main(int argc, char **argv)
 		if (NULL == argv[option_index]) {
 			option_index = option_index + 1;
 		} else if (match(argv[option_index], "-a") || match(argv[option_index], "--algorithm")) {
+			require(NULL != argv[option_index + 1], "the --algorithm option requires a bit length\n");
 			algorithm = strtoint(argv[option_index + 1]);
 			option_index = option_index + 2;
 			require(algorithm == 224 || algorithm == 256 || algorithm == 384 || algorithm == 512, "invalid bit length\n");
 		} else if (match(argv[option_index], "-o") || match(argv[option_index], "--output")) {
 			output_file = argv[option_index + 1];
+			require(NULL != output_file, "the --output option requires a filename to be given\n");
 			option_index = option_index + 2;
 			if (output != stdout) {
 				fclose(output);
@@ -226,6 +228,7 @@ int main(int argc, char **argv)
 			require(output != NULL, "Output file cannot be opened!\n");
 		} else if (match(argv[option_index], "--verify")) {
 			verify_hash = argv[option_index + 1];
+			require(NULL != verify_hash, "the --verify option requires a hash to be given\n");
 			option_index = option_index + 2;
 		} else if (match(argv[option_index], "-h") || match(argv[option_index], "--help")) {
 			fputs("Usage: ", stderr);

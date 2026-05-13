@@ -2421,6 +2421,7 @@ int main(int argc, char **argv)
 	else destination = stdout;
 
 	if(FUZZING) destination = fopen("/dev/null", "w");
+	require(NULL != destination, "unable to open output file for writing\n");
 	global = calloc(1, sizeof(struct CLzmaDec));
 	global->readBuf = calloc(sizeof_readBuf, sizeof(uint8_t));
 	global->readCur = global->readBuf;

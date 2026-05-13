@@ -16,7 +16,7 @@
 
 PACKAGE = mescc-tools-extra
 
-all: catm cp chmod match mkdir unbz2 ungz untar unxz sha256sum sha3sum wrap
+all: catm cp chmod match mkdir rm replace unbz2 ungz untar unxz sha256sum sha3sum wrap
 .NOTPARALLEL:
 CC=gcc
 CFLAGS:=$(CFLAGS) -D_GNU_SOURCE -std=c99 -ggdb -fno-common
@@ -52,6 +52,11 @@ rm: bin/rm
 
 bin/rm: rm.c | bin
 	$(CC) $(CFLAGS) rm.c M2libc/bootstrappable.c -o $@
+
+replace: bin/replace
+
+bin/replace: replace.c | bin
+	$(CC) $(CFLAGS) replace.c M2libc/bootstrappable.c -o $@
 
 sha256sum: bin/sha256sum
 
@@ -89,7 +94,7 @@ bin/wrap: wrap.c | bin
 	$(CC) $(CFLAGS) -Wno-implicit-function-declaration wrap.c M2libc/bootstrappable.c -o $@
 
 # Clean up after ourselves
-.PHONY: clean catm cp chmod match mkdir unbz2 ungz untar unxz sha256sum sha3sum wrap
+.PHONY: clean catm cp chmod match mkdir rm replace unbz2 ungz untar unxz sha256sum sha3sum wrap
 clean:
 	rm -rf bin/
 
@@ -104,7 +109,7 @@ bin:
 	mkdir -p bin
 
 # tests
-test: sha256sum sha3sum | bin
+test: all | bin
 	./test.sh
 
 
@@ -112,7 +117,7 @@ DESTDIR:=
 PREFIX:=/usr/local
 bindir:=$(DESTDIR)$(PREFIX)/bin
 .PHONY: install
-install: bin/catm bin/cp bin/chmod bin/match bin/mkdir bin/unbz2 bin/ungz bin/untar bin/sha256sum bin/sha3sum bin/wrap
+install: bin/catm bin/cp bin/chmod bin/match bin/mkdir bin/rm bin/replace bin/unbz2 bin/ungz bin/untar bin/unxz bin/sha256sum bin/sha3sum bin/wrap
 	mkdir -p $(bindir)
 	cp $^ $(bindir)
 

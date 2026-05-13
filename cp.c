@@ -73,7 +73,9 @@ char* directory_dest(char* dest, char* source, int require_directory)
 	 *   works.
 	 */
 	int isdirectory = FALSE;
-	if(dest[strlen(dest) - 1] == '/')
+	int dest_len = strlen(dest);
+	require(0 < dest_len, "Provide a destination file\n");
+	if(dest[dest_len - 1] == '/')
 	{
 		isdirectory = TRUE;
 	}
@@ -186,7 +188,7 @@ void copy_file(char* source, char* dest)
 		exit(EXIT_FAILURE);
 	}
 	FILE* fdest = fopen(dest, "w");
-	if(fdest < 0)
+	if(fdest == NULL)
 	{
 		fputs("Error opening destination file", stderr);
 		fputs(dest, stderr);

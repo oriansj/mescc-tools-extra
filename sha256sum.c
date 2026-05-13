@@ -505,6 +505,7 @@ int main(int argc, char **argv)
 		else if (match(argv[i], "-o") || match(argv[i], "--output"))
 		{
 			output_file = argv[i + 1];
+			require(NULL != output_file, "the --output option requires a filename to be given\n");
 			i += 2;
 			if (output != stdout) {
 				fclose(output);

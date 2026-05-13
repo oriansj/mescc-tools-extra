@@ -144,6 +144,7 @@ int main(int argc, char** argv)
 
 	/* Save ourself work if the input file is too small */
 	pattern_length = strlen(pattern);
+	require(0 < pattern_length, "replacement pattern must not be empty\n");
 	require(pattern_length < size, "input file is to small for pattern\n");
 
 	/* Now read it all into buffer */
@@ -154,7 +155,7 @@ int main(int argc, char** argv)
 
 	/* Now we can safely open the output (which could have been the same as the input */
 	output = fopen(output_name, "w");
-	require(NULL != input, "unable to open requested output file!\n");
+	require(NULL != output, "unable to open requested output file!\n");
 
 	/* build our match buffer */
 	hold = calloc(pattern_length + 4, sizeof(char));

@@ -100,11 +100,16 @@ void create_dir(char *pathname, int mode)
 {
 	char *p;
 	int r;
+	int len;
+
+	require(NULL != pathname, "untar: empty path in archive\n");
+	len = strlen(pathname);
+	require(0 < len, "untar: empty path in archive\n");
 
 	/* Strip trailing '/' */
-	if(pathname[strlen(pathname) - 1] == '/')
+	if(pathname[len - 1] == '/')
 	{
-		pathname[strlen(pathname) - 1] = '\0';
+		pathname[len - 1] = '\0';
 	}
 
 	/* Try creating the directory. */
@@ -403,7 +408,7 @@ int main(int argc, char **argv)
 				fputc('\n', stderr);
 				if(STRICT) exit(EXIT_FAILURE);
 			}
-			list = a;
+			else list = a;
 			i = i + 2;
 		}
 		else if(match(argv[i], "--chaos") || match(argv[i], "--fuzz-mode") || match(argv[i], "--fuzzing"))

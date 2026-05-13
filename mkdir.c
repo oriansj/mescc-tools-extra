@@ -42,11 +42,16 @@ void create_dir(char *pathname, int mode)
 {
 	char *p;
 	int r;
+	int len;
+
+	require(NULL != pathname, "mkdir: missing directory operand\n");
+	len = strlen(pathname);
+	require(0 < len, "mkdir: empty directory name\n");
 
 	/* Strip trailing '/' */
-	if(pathname[strlen(pathname) - 1] == '/')
+	if(pathname[len - 1] == '/')
 	{
-		pathname[strlen(pathname) - 1] = '\0';
+		pathname[len - 1] = '\0';
 	}
 
 	/* Try creating the directory. */
@@ -102,6 +107,7 @@ int main(int argc, char **argv)
 		}
 		else if(match(argv[i], "-m") || match(argv[i], "--mode"))
 		{
+			require(NULL != argv[i+1], "mkdir: --mode requires an argument\n");
 			raw_mode = calloc(MAX_STRING, sizeof(char));
 			require(raw_mode != NULL, "Memory initialization of mode failed\n");
 			/* We need to indicate it is octal */

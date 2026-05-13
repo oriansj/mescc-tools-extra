@@ -1270,6 +1270,8 @@ int main(int argc, char **argv)
 	struct gz* in;
 	FILE* out;
 	int FUZZING = FALSE;
+	name = NULL;
+	dest = NULL;
 
 	/* process arguments */
 	int i = 1;
@@ -1316,6 +1318,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	require(NULL != name, "an input file (--file $name) must be provided\n");
 	in = load(name);
 
 	if (in == NULL)
@@ -1330,6 +1333,7 @@ int main(int argc, char **argv)
 	{
 		dest = in->FLG_FNAME;
 	}
+	require(NULL != dest, "an output file (--output $name) must be provided\n");
 
 	fputs(name, stderr);
 	fputs(" => ", stderr);
@@ -1361,7 +1365,9 @@ int main(int argc, char **argv)
 	if(!FUZZING)
 	{
 		out = fopen(dest, "w");
+		require(NULL != out, "unable to open output file for writing\n");
 		fwrite(buffer, 1, ret->destlen, out);
+		fclose(out);
 	}
 	else
 	{

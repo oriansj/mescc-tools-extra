@@ -47,6 +47,11 @@ int main(int argc, char** argv)
 	int i;
 	int bytes;
 	char* buffer = calloc(BUFFER_SIZE + 1, sizeof(char));
+	if(NULL == buffer)
+	{
+		fputs("Unable to allocate copy buffer\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 	int input;
 	for(i = 2; i < argc ; i =  i + 1)
 	{
@@ -60,6 +65,11 @@ int main(int argc, char** argv)
 		}
 keep:
 		bytes = read(input, buffer, BUFFER_SIZE);
+		if(0 > bytes)
+		{
+			fputs("Unable to read input file\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		write(output, buffer, bytes);
 		if(BUFFER_SIZE == bytes) goto keep;
 	}

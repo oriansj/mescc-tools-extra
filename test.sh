@@ -16,6 +16,23 @@
 ## along with stage0.  If not, see <http://www.gnu.org/licenses/>.
 
 set -ex
+
+check_no_crash()
+{
+	name="$1"
+	shift
+
+	set +e
+	"$@" >/dev/null 2>&1
+	status="$?"
+	set -e
+
+	if [ "$status" -ge 128 ]; then
+		echo "$name crashed with status $status" >&2
+		exit 1
+	fi
+}
+
 . ./sha256.sh
 echo "Beginning sha256sum tests"
 mkdir -p bin/tests
@@ -58,3 +75,35 @@ tar --no-recursion -cf bin/tests/check.tar bin/tests/abc bin/tests/abcd bin/test
 	ls -l bin/tests/null bin/tests/dir1/null1
 )
 echo 'tar tests done'
+
+echo 'Beginning malformed input crash tests'
+rm -rf bin/tests/crash-regressions
+mkdir -p bin/tests/crash-regressions
+printf abc > bin/tests/crash-regressions/in
+
+check_no_crash catm-no-args ./bin/catm
+check_no_crash chmod-no-args ./bin/chmod
+check_no_crash cp-no-args ./bin/cp
+check_no_crash cp-empty-destination ./bin/cp bin/tests/crash-regressions/in ""
+check_no_crash match-no-args ./bin/match
+check_no_crash mkdir-missing-mode ./bin/mkdir -m
+check_no_crash mkdir-empty-path ./bin/mkdir ""
+check_no_crash replace-empty-pattern ./bin/replace -f bin/tests/crash-regressions/in -m "" -r x -o bin/tests/crash-regressions/out
+check_no_crash replace-bad-output ./bin/replace -f bin/tests/crash-regressions/in -m z -r x -o bin/tests/crash-regressions/missing/out
+check_no_crash rm-no-args ./bin/rm
+check_no_crash sha256sum-missing-output ./bin/sha256sum -o
+check_no_crash sha3sum-missing-algorithm ./bin/sha3sum -a
+check_no_crash sha3sum-missing-output ./bin/sha3sum -o
+check_no_crash sha3sum-missing-verify ./bin/sha3sum --verify
+check_no_crash untar-missing-file-argument ./bin/untar -f
+check_no_crash untar-nonstrict-missing-file ./bin/untar --non-strict -f bin/tests/crash-regressions/missing.tar
+check_no_crash unbz2-missing-file-argument ./bin/unbz2 -f
+check_no_crash unbz2-missing-output-argument ./bin/unbz2 -o
+check_no_crash ungz-missing-file-argument ./bin/ungz -f
+check_no_crash ungz-missing-output-argument ./bin/ungz -o
+check_no_crash unxz-missing-file-argument ./bin/unxz -f
+check_no_crash unxz-missing-output-argument ./bin/unxz -o
+check_no_crash wrap-no-args ./bin/wrap
+
+rm -rf bin/tests/crash-regressions
+echo 'malformed input crash tests done'
