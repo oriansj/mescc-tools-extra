@@ -115,11 +115,7 @@ char **copy_environment(char **newenv, char *variable) {
 		memcpy(*newenv, variable, var_len);
 		(*newenv)[var_len] = '=';
 		strcpy(*newenv + var_len + 1, var_contents);
-#ifdef __M2__
-		return newenv + sizeof(char *);
-#else
 		return newenv + 1;
-#endif
 	}
 	return newenv;
 }
@@ -204,12 +200,8 @@ int main(int argc, char **argv)
 	newenv_end[1] = NULL;
 
 
-#ifdef __M2__
-#if __uefi__
-	return spawn (argv[1], argv + sizeof(char *), newenv);
-#else
-	return execve (argv[1], argv + sizeof(char *), newenv);
-#endif
+#ifdef __uefi__
+	return spawn (argv[1], argv + 1, newenv);
 #else
 	return execve (argv[1], argv + 1, newenv);
 #endif
