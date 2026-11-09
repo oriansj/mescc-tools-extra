@@ -84,10 +84,18 @@ void set_map(int parent_id, char *path) {
 #else
 	snprintf(map_contents, 38, "0 %i 1", parent_id);
 #endif
-	write(fd, map_contents, strlen(map_contents));
+	if (write(fd, map_contents, strlen(map_contents)) != strlen(map_contents))
+	{
+		fputs("Failed to write map file\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 	write(STDOUT_FILENO, map_contents, strlen(map_contents));
 	free(map_contents);
-	close(fd);
+	if (close(fd) != 0)
+	{
+		fputs("Failed to close map file\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 }
 
 void deny_setgroups() {
@@ -97,8 +105,16 @@ void deny_setgroups() {
 		fputs("Failed to open /proc/self/setgroups\n", stderr);
 		exit(EXIT_FAILURE);
 	}
-	write(fd, "deny", 4);
-	close(fd);
+	if(write(fd, "deny", 4) != 4)
+	{
+		fputs("Failed to write /proc/self/setgroups\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+	if(close(fd) != 0)
+	{
+		fputs("Failed to close /proc/self/setgroups\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 }
 
 char **copy_environment(char **newenv, char *variable) {
@@ -132,6 +148,11 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	char *cwd = get_current_dir_name();
+	if(NULL == cwd)
+	{
+		fputs("Failed to get current directory\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 	/* Do nothing if cwd is already root */
 	if (strcmp(cwd, "/"))
 	{

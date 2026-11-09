@@ -46,6 +46,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 /* This is for mkdir(); this may need to be changed for some platforms. */
 #include <sys/stat.h>  /* For mkdir() */
@@ -96,7 +98,7 @@ int is_end_of_archive(char const* p)
 }
 
 /* Create a directory, including parent directories as necessary. */
-void create_dir(char *pathname, int mode)
+int create_dir(char *pathname, int mode)
 {
 	char *p;
 	int r;
@@ -107,7 +109,7 @@ void create_dir(char *pathname, int mode)
 	require(0 < len, "untar: empty path in archive\n");
 
 	/* Strip trailing '/' */
-	if(pathname[len - 1] == '/')
+	if((1 < len) && (pathname[len - 1] == '/'))
 	{
 		pathname[len - 1] = '\0';
 	}
@@ -136,18 +138,20 @@ void create_dir(char *pathname, int mode)
 			fputs("Could not create directory ", stderr);
 			fputs(pathname, stderr);
 			fputc('\n', stderr);
+			return FALSE;
 		}
 	}
+	return TRUE;
 }
 
 /* Create a file, including parent directory as necessary. */
-FILE* create_file(char *pathname)
+int create_file(char *pathname)
 {
-	if(FUZZING) return NULL;
-	FILE* f;
-	f = fopen(pathname, "w");
+	if(FUZZING) return -1;
+	int f;
+	f = open(pathname, O_WRONLY|O_CREAT|O_TRUNC, 0600);
 
-	if(f == NULL)
+	if(f < 0)
 	{
 		/* Try creating parent dir and then creating file. */
 		char *p = strrchr(pathname, '/');
@@ -155,9 +159,13 @@ FILE* create_file(char *pathname)
 		if(p != NULL)
 		{
 			p[0] = '\0';
-			create_dir(pathname, 0755);
+			if(!create_dir(pathname, 0755))
+			{
+				p[0] = '/';
+				return -1;
+			}
 			p[0] = '/';
-			f = fopen(pathname, "w");
+			f = open(pathname, O_WRONLY|O_CREAT|O_TRUNC, 0600);
 		}
 	}
 
@@ -195,9 +203,9 @@ int untar(FILE *a, char const* path)
 {
 	char* target = calloc(101, sizeof(char));
 	char* buff = calloc(514, sizeof(char));
-	FILE* f = NULL;
+	int f = -1;
 	size_t bytes_read;
-	size_t bytes_written;
+	int bytes_written;
 	int symlink_ret;
 	int filesize;
 	int op;
@@ -304,7 +312,7 @@ int untar(FILE *a, char const* path)
 				fputs(" Extracting dir ", stdout);
 				puts(buff);
 			}
-			create_dir(buff, parseoct(buff + 100, 8));
+			if(!create_dir(buff, parseoct(buff + 100, 8))) return FALSE;
 			filesize = 0;
 		}
 		else if('6' == op)
@@ -325,6 +333,13 @@ int untar(FILE *a, char const* path)
 				puts(buff);
 			}
 			f = create_file(buff);
+			if((f < 0) && !FUZZING)
+			{
+				fputs("Failed to create file ", stderr);
+				fputs(buff, stderr);
+				fputc('\n', stderr);
+				if(STRICT) return FALSE;
+			}
 		}
 
 		while(filesize > 0)
@@ -345,16 +360,17 @@ int untar(FILE *a, char const* path)
 				bytes_read = filesize;
 			}
 
-			if(f != NULL)
+			if(f >= 0)
 			{
 				if(!FUZZING)
 				{
-					bytes_written = fwrite(buff, 1, bytes_read, f);
+					bytes_written = write(f, buff, bytes_read);
 					if(bytes_written != bytes_read)
 					{
 						fputs("Failed write\n", stderr);
-						fclose(f);
-						f = NULL;
+						close(f);
+						f = -1;
+						if(STRICT) return FALSE;
 					}
 				}
 			}
@@ -362,10 +378,14 @@ int untar(FILE *a, char const* path)
 			filesize = filesize - bytes_read;
 		}
 
-		if(f != NULL)
+		if(f >= 0)
 		{
-			fclose(f);
-			f = NULL;
+			if(0 != close(f))
+			{
+				fputs("Failed close\n", stderr);
+				if(STRICT) return FALSE;
+			}
+			f = -1;
 		}
 	}
 	return TRUE;
@@ -385,6 +405,8 @@ int main(int argc, char **argv)
 	STRICT = TRUE;
 	FUZZING = FALSE;
 	int r;
+	int ok = TRUE;
+	int saw_file = FALSE;
 
 	int i = 1;
 	while (i < argc)
@@ -400,6 +422,7 @@ int main(int argc, char **argv)
 			a->next = list;
 			a->name = argv[i+1];
 			require(NULL != a->name, "the --file option requires a filename to be given\n");
+			saw_file = TRUE;
 			a->f = fopen(a->name, "r");
 			if(a->f == NULL)
 			{
@@ -450,16 +473,22 @@ int main(int argc, char **argv)
 	}
 
 	/* Process the queue one file at a time */
+	require(saw_file, "an input file (--file $name) must be provided\n");
 	while(NULL != list)
 	{
 		r = untar(list->f, list->name);
 		fputs("The extraction of ", stderr);
 		fputs(list->name, stderr);
 		if(r) fputs(" was successful\n", stderr);
-		else fputs(" produced errors\n", stderr);
+		else
+		{
+			fputs(" produced errors\n", stderr);
+			ok = FALSE;
+		}
 		fclose(list->f);
 		list = list->next;
 	}
 
-	return 0;
+	if(ok) return 0;
+	return 1;
 }

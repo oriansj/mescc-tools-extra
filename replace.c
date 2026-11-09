@@ -140,12 +140,13 @@ int main(int argc, char** argv)
 	/* Get enough buffer to read it all */
 	fseek(input, 0, SEEK_END);
 	size_t size = ftell(input);
-	buffer = malloc((size + 8) * sizeof(char));
 
 	/* Save ourself work if the input file is too small */
 	pattern_length = strlen(pattern);
 	require(0 < pattern_length, "replacement pattern must not be empty\n");
-	require(pattern_length < size, "input file is to small for pattern\n");
+	require(pattern_length <= size, "input file is to small for pattern\n");
+	buffer = calloc(size + pattern_length + 8, sizeof(char));
+	require(NULL != buffer, "input buffer allocation failed\n");
 
 	/* Now read it all into buffer */
 	fseek(input, 0, SEEK_SET);

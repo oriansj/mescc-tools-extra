@@ -365,7 +365,7 @@ int hex2int(char c, char* filename)
 {
 	if((c >= '0') && (c <= '9')) return (c - 48);
 	else if((c >= 'a') && (c <= 'f')) return (c - 87);
-	else if ((c >= 'F') && (c <= 'F')) return (c - 55);
+	else if ((c >= 'A') && (c <= 'F')) return (c - 55);
 	bad_checkfile(filename);
 	exit(EXIT_FAILURE);
 }
@@ -532,6 +532,7 @@ int main(int argc, char **argv)
 				rewind(t->f);
 				t->buffer = calloc(t->size + 1, sizeof(char));
 				read = fread(t->buffer, sizeof(char), t->size, t->f);
+				require(read == t->size, "incomplete read of input\n");
 			}
 			t->next = l;
 			l = t;

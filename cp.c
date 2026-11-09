@@ -75,6 +75,10 @@ char* directory_dest(char* dest, char* source, int require_directory)
 	int isdirectory = FALSE;
 	int dest_len = strlen(dest);
 	require(0 < dest_len, "Provide a destination file\n");
+	if(match(dest, "."))
+	{
+		isdirectory = TRUE;
+	}
 	if(dest[dest_len - 1] == '/')
 	{
 		isdirectory = TRUE;

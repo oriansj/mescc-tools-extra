@@ -46,6 +46,7 @@ int main(int argc, char** argv)
 
 	int i;
 	int bytes;
+	int written;
 	char* buffer = calloc(BUFFER_SIZE + 1, sizeof(char));
 	if(NULL == buffer)
 	{
@@ -70,10 +71,21 @@ keep:
 			fputs("Unable to read input file\n", stderr);
 			exit(EXIT_FAILURE);
 		}
-		write(output, buffer, bytes);
+		written = write(output, buffer, bytes);
+		if(bytes != written)
+		{
+			fputs("Unable to write output file\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		if(BUFFER_SIZE == bytes) goto keep;
+		close(input);
 	}
 
+	if(0 != close(output))
+	{
+		fputs("Unable to close output file\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 	free(buffer);
 	return EXIT_SUCCESS;
 }

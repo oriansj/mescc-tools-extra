@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include "M2libc/bootstrappable.h"
 
-void delete_dir(char* name)
+int delete_dir(char* name)
 {
 	int r = unlink(name);
 	if(0 != r)
@@ -39,16 +39,20 @@ void delete_dir(char* name)
 		fputs("unable to delete file: ", stderr);
 		fputs(name, stderr);
 		fputs(" !!!\n", stderr);
+		return FALSE;
 	}
+	return TRUE;
 }
 
 int main(int argc, char **argv)
 {
 	int i;
+	int r = TRUE;
 	for(i = 1; argc > i; i = i + 1)
 	{
-		delete_dir(argv[i]);
+		if(!delete_dir(argv[i])) r = FALSE;
 	}
 
-	return 0;
+	if(r) return 0;
+	return 1;
 }

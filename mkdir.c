@@ -49,7 +49,7 @@ void create_dir(char *pathname, int mode)
 	require(0 < len, "mkdir: empty directory name\n");
 
 	/* Strip trailing '/' */
-	if(pathname[len - 1] == '/')
+	if((1 < len) && (pathname[len - 1] == '/'))
 	{
 		pathname[len - 1] = '\0';
 	}
@@ -87,6 +87,7 @@ int main(int argc, char **argv)
 	int i;
 	int mode = 0755;
 	char* raw_mode = NULL;
+	int created = FALSE;
 
 	for(i = 1; argc > i; i = i + 1)
 	{
@@ -116,8 +117,13 @@ int main(int argc, char **argv)
 			mode = strtoint(raw_mode);
 			i = i + 1;
 		}
-		else create_dir(argv[i], mode);
+		else
+		{
+			create_dir(argv[i], mode);
+			created = TRUE;
+		}
 	}
 
+	require(created, "mkdir: missing directory operand\n");
 	return 0;
 }
