@@ -217,13 +217,13 @@ int stored(struct state *s)
 
 	/* get length and check against its one's complement */
 	if ((s->incnt + 4) > s->inlen) return 2;    /* not enough input */
-	len = s->in[s->incnt];
+	len = (s->in[s->incnt] & 0xff);
 	s->incnt = s->incnt + 1;
-	len = len | (s->in[s->incnt] << 8);
+	len = len | ((s->in[s->incnt] & 0xff) << 8);
 	s->incnt = s->incnt + 1;
-	if(s->in[s->incnt] != (~len & 0xff)) return -2;                              /* didn't match complement! */
+	if((s->in[s->incnt] & 0xff) != (~len & 0xff)) return -2;                              /* didn't match complement! */
 	s->incnt = s->incnt + 1;
-	if(s->in[s->incnt] != ((~len >> 8) & 0xff)) return -2;                              /* didn't match complement! */
+	if((s->in[s->incnt] & 0xff) != ((~len >> 8) & 0xff)) return -2;                              /* didn't match complement! */
 	s->incnt = s->incnt + 1;
 
 	/* copy len bytes from in to out */
